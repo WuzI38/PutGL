@@ -18,7 +18,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 */
 
 #define GLM_FORCE_RADIANS
-#define WINDOW_SIZE 1500
+#define WINDOW_SIZE 1500 // TODO - IT SHOULD BE SCALABLE
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -27,16 +27,36 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
 #include <stdio.h>
-#include "headers/myCube.h"
+#include "headers/model.h"
+#include "headers/piece_mover.h"
 #include "headers/constants.h"
-#include "headers/allmodels.h"
-#include "headers/lodepng.h"
 #include "headers/shaderprogram.h"
 
-float speed_x = 0;//[radiany/s]
-float speed_y = 0;//[radiany/s]
+bool position = true;
 
-GLuint tex;
+PieceMover* move;
+
+Model* chessboard;
+Model* table;
+
+Model* pawnWhite;
+Model* pawnBlack;
+
+Model* rookWhite;
+Model* rookBlack;
+
+Model* knightWhite;
+Model* knightBlack;
+
+Model* bishopWhite;
+Model* bishopBlack;
+
+Model* queenWhite;
+Model* queenBlack;
+
+Model* kingWhite;
+Model* kingBlack;
+
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -51,51 +71,24 @@ void key_callback(
 	int mod
 ) {
 	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_LEFT) {
-			speed_y = -PI;
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			speed_y = PI;
-		}
 		if (key == GLFW_KEY_UP) {
-			speed_x = -PI;
+			position = true;
 		}
 		if (key == GLFW_KEY_DOWN) {
-			speed_x = PI;
+			position = false;
 		}
 	}
-	if (action == GLFW_RELEASE) {
+	/*if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) {
 			speed_y = 0;
 		}
 		if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) {
 			speed_x = 0;
 		}
-	}
+	}*/
 }
 
-GLuint readTexture(const char* filename) {
-	GLuint tex;
-	glActiveTexture(GL_TEXTURE0);
 
-	//Wczytanie do pamięci komputera
-	std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
-	unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
-	//Wczytaj obrazek
-	unsigned error = lodepng::decode(image, width, height, filename);
-
-	//Import do pamięci karty graficznej
-	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
-	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-	//Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	return tex;
-}
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
@@ -104,201 +97,129 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glClearColor(0, 0, 0, 1); //Ustaw kolor czyszczenia bufora kolorów
 	glEnable(GL_DEPTH_TEST); //Włącz test głębokości na pikselach
 	glfwSetKeyCallback(window, key_callback);
-	tex = readTexture("textures/chessboard.png");
+
+	move = new PieceMover(WINDOW_SIZE);
+
+	chessboard = new Model("objects/chessboard.obj", "textures/chessboard.png");
+	table = new Model("objects/table.obj", "textures/table.png");
+
+	pawnWhite = new Model("objects/pawn.obj", "textures/white.png");
+	pawnBlack = new Model("objects/pawn.obj", "textures/black.png");
+
+	rookWhite = new Model("objects/rook.obj", "textures/white.png");
+	rookBlack = new Model("objects/rook.obj", "textures/black.png");
+
+	knightWhite = new Model("objects/knight.obj", "textures/white.png");
+	knightBlack = new Model("objects/knight.obj", "textures/black.png");
+
+	bishopWhite = new Model("objects/bishop.obj", "textures/white.png");
+	bishopBlack = new Model("objects/bishop.obj", "textures/black.png");
+
+	queenWhite = new Model("objects/queen.obj", "textures/white.png");
+	queenBlack = new Model("objects/queen.obj", "textures/black.png");
+
+	kingWhite = new Model("objects/king.obj", "textures/white.png");
+	kingBlack = new Model("objects/king.obj", "textures/black.png");
 }
 
 
 //Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram(GLFWwindow* window) {
     freeShaders();
-
-	// Cleanup
-	delete[] vertices;
-	delete[] normals;
-	delete[] texCoords;
-
-    //************Tutaj umieszczaj kod, który należy wykonać po zakończeniu pętli głównej************
-	glDeleteTextures(1, &tex);
-}
-
-void ptica(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
-	//Przykładowe tablice dla tego zadania - możliwości jest bardzo dużo
-	float birdVertices[] = {
-		0,1,1,1,
-		1,0,0,1,
-		0,1,-1,1,
-
-		0,1,1,1,
-		0,1,-1,1,
-		-1,0,0,1
-	};
-
-	float birdColors[] = {
-		1,0,0,1,
-		0,1,0,1,
-		1,0,0,1,
-
-		1,0,0,1,
-		1,0,0,1,
-		0,0,1,1
-	};
-
-	spColored->use(); //Aktywuj program cieniujący
-	
-	glUniformMatrix4fv(spColored->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
-	glUniformMatrix4fv(spColored->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	glUniformMatrix4fv(spColored->u("M"), 1, false, glm::value_ptr(M)); //Załaduj do programu cieniującego macierz modelu
-	
-
-	glEnableVertexAttribArray(spColored->a("vertex"));
-	glVertexAttribPointer(spColored->a("vertex"), 4, GL_FLOAT, false, 0, birdVertices); //Współrzędne wierzchołków bierz z tablicy birdVertices
-
-	glEnableVertexAttribArray(spColored->a("color"));
-	glVertexAttribPointer(spColored->a("color"), 4, GL_FLOAT, false, 0, birdColors); //Współrzędne wierzchołków bierz z tablicy birdColors
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(spColored->a("vertex"));
-	glDisableVertexAttribArray(spColored->a("color"));
-	
-}
-
-void boltbird(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
-	spColored->use(); //Aktywuj program cieniujący
-	
-
-	glUniformMatrix4fv(spColored->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
-	glUniformMatrix4fv(spColored->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	glUniformMatrix4fv(spColored->u("M"), 1, false, glm::value_ptr(M)); //Załaduj do programu cieniującego macierz modelu
-
-
-	glEnableVertexAttribArray(spColored->a("vertex"));
-	glVertexAttribPointer(spColored->a("vertex"), 4, GL_FLOAT, false, 0, vertices); //Współrzędne wierzchołków bierz z tablicy birdVertices
-
-	glEnableVertexAttribArray(spColored->a("color"));
-	glVertexAttribPointer(spColored->a("color"), 4, GL_FLOAT, false, 0, colors); //Współrzędne wierzchołków bierz z tablicy birdColors
-
-	glDrawArrays(GL_TRIANGLES, 0, boardVertexCount);
-
-	glDisableVertexAttribArray(spColored->a("vertex"));
-	glDisableVertexAttribArray(spColored->a("color"));
-
-}
-
-
-/*void kostka(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
-	spColored->use(); //Aktywuj program cieniujący
-
-	glUniformMatrix4fv(spColored->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
-	glUniformMatrix4fv(spColored->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	glUniformMatrix4fv(spColored->u("M"), 1, false, glm::value_ptr(M)); //Załaduj do programu cieniującego macierz modelu
-
-
-	glEnableVertexAttribArray(spColored->a("vertex"));
-	glVertexAttribPointer(spColored->a("vertex"), 4, GL_FLOAT, false, 0, myCubeVertices); //Współrzędne wierzchołków bierz z tablicy birdVertices
-
-	glEnableVertexAttribArray(spColored->a("color"));
-	glVertexAttribPointer(spColored->a("color"), 4, GL_FLOAT, false, 0, myCubeColors); //Współrzędne wierzchołków bierz z tablicy birdColors
-
-	glDrawArrays(GL_TRIANGLES, 0, myCubeVertexCount);
-
-	glDisableVertexAttribArray(spColored->a("vertex"));
-	glDisableVertexAttribArray(spColored->a("color"));
-}
-
-void texKostka(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
-	//Tablica ta raczej powinna znaleźć się w pliku myCube.h, ale umieściłem ją tutaj, żeby w tej procedurze zawrzeć (prawie) całe rozwiązanie zadania
-	//Reszta to wczytanie tekstury - czyli kawałki kodu, które trzeba przekopiować ze slajdów
-	float myCubeTexCoords[] = {
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,  
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,    
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-	};
-
-	spTextured->use(); //Aktywuj program cieniujący
-
-	glUniformMatrix4fv(spTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
-	glUniformMatrix4fv(spTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	glUniformMatrix4fv(spTextured->u("M"), 1, false, glm::value_ptr(M)); //Załaduj do programu cieniującego macierz modelu
-
-
-	glEnableVertexAttribArray(spTextured->a("vertex"));
-	glVertexAttribPointer(spTextured->a("vertex"), 4, GL_FLOAT, false, 0, myCubeVertices); //Współrzędne wierzchołków bierz z tablicy myCubeVertices
-
-	glEnableVertexAttribArray(spTextured->a("texCoord"));
-	glVertexAttribPointer(spTextured->a("texCoord"), 2, GL_FLOAT, false, 0, myCubeTexCoords); //Współrzędne teksturowania bierz z tablicy myCubeTexCoords
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glUniform1i(spTextured->u("tex"), 0);
-
-	glDrawArrays(GL_TRIANGLES, 0, myCubeVertexCount);
-
-	glDisableVertexAttribArray(spTextured->a("vertex"));
-	glDisableVertexAttribArray(spTextured->a("color"));
-}*/
-
-void texPlansza(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
-
-	spTextured->use(); //Aktywuj program cieniujący
-	
-	/*std::cout << vertices[0] << std::endl;
-	std::cout << texCoords[0] << std::endl;*/
-
-
-	glUniformMatrix4fv(spTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
-	glUniformMatrix4fv(spTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	glUniformMatrix4fv(spTextured->u("M"), 1, false, glm::value_ptr(M)); //Załaduj do programu cieniującego macierz modelu
-
-	glEnableVertexAttribArray(spTextured->a("vertex"));
-	glVertexAttribPointer(spTextured->a("vertex"), 4, GL_FLOAT, false, 0, vertices); //Współrzędne wierzchołków bierz z tablicy myCubeVertices
-
-	glEnableVertexAttribArray(spTextured->a("texCoord"));
-	glVertexAttribPointer(spTextured->a("texCoord"), 2, GL_FLOAT, false, 0, texCoords); //Współrzędne teksturowania bierz z tablicy myCubeTexCoords
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glUniform1i(spTextured->u("tex"), 0);
-
-	glDrawArrays(GL_TRIANGLES, 0, boardVertexCount);
-
-	glDisableVertexAttribArray(spTextured->a("vertex"));
-	glDisableVertexAttribArray(spTextured->a("color"));
 }
 
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
+void drawScene(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Wyczyść bufor koloru i bufor głębokości
-	
-	glm::mat4 M = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
-	M = glm::rotate(M, angle_y, glm::vec3(0.0f, 1.0f, 0.0f)); //Pomnóż macierz modelu razy macierz obrotu o kąt angle wokół osi Y
-	M = glm::rotate(M, angle_x, glm::vec3(1.0f, 0.0f, 0.0f)); //Pomnóż macierz modelu razy macierz obrotu o kąt angle wokół osi X
-	M = glm::scale(M, glm::vec3(0.5f, 0.5f, 0.5f)); //Pomnóż macierz modelu razy macierz obrotu o kąt angle wokół osi X
-	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 0.0f, -50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz widoku
-	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
-	
-	
-	//ptica(P, V, M);
-	//kostka(P, V, M);
-	//texPlansza(P, V, M);
-	boltbird(P, V, M);
 
+	spLambertTextured->use(); //Aktywuj program cieniujący
+
+	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
+	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
+
+	if (!position) {
+		V = glm::lookAt(glm::vec3(0.0f, 3.0f, -5.0f), glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz widoku
+	}
+
+	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
+	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
+	
+	glm::mat4 tableMat = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
+	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //Pomnóż macierz modelu razy macierz obrotu o kąt angle wokół osi X
+
+	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tableMat));
+
+	table->draw();
+
+	glm::mat4 chessboardMat = glm::mat4(1.0f);
+	chessboardMat = glm::translate(chessboardMat, glm::vec3(0.0f, 1.2f, 0.0f));
+	chessboardMat = glm::rotate(chessboardMat, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+	chessboardMat = glm::scale(chessboardMat, glm::vec3(0.02f, 0.02f, 0.02f));
+
+	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(chessboardMat));
+
+	chessboard->draw();
+
+	glm::mat4 pieceMat = glm::mat4(1.0f);
+	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.2f, 0.0f));
+	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
+
+	// Move every piece to its position
+
+	for (char letter = 'a'; letter <= 'h'; ++letter) {
+		std::string whitePos = std::string(1, letter) + "7";
+		move->placePiece(&pieceMat, whitePos);
+		pawnWhite->draw();
+
+		std::string blackPos = std::string(1, letter) + "2";
+		move->placePiece(&pieceMat, blackPos);
+		pawnBlack->draw();
+
+		whitePos = std::string(1, letter) + "8";
+		blackPos = std::string(1, letter) + "1";
+
+		if (letter == 'a' || letter == 'h') { // THIS THING CAN BE OF COURSE OPTIMIZED... 
+			move->placePiece(&pieceMat, whitePos); // <- YEP, NO REDUNDANCY AT ALL
+			rookWhite->draw();
+			move->placePiece(&pieceMat, blackPos);
+			rookBlack->draw();
+		}
+
+		if (letter == 'b' || letter == 'g') {
+			move->placePiece(&pieceMat, whitePos); // <- YEP, NO REDUNDANCY AT ALL
+			knightWhite->draw();
+			move->placePiece(&pieceMat, blackPos);
+			knightBlack->draw();
+		}
+
+		if (letter == 'c' || letter == 'f') {
+			move->placePiece(&pieceMat, whitePos);
+			bishopWhite->draw();
+			move->placePiece(&pieceMat, blackPos);
+			bishopBlack->draw();
+		}
+
+		if (letter == 'd') {
+			move->placePiece(&pieceMat, whitePos);
+			queenWhite->draw();
+			move->placePiece(&pieceMat, blackPos);
+			queenBlack->draw();
+		}
+
+		if (letter == 'e') {
+			move->placePiece(&pieceMat, whitePos);
+			kingWhite->draw();
+			move->placePiece(&pieceMat, blackPos);
+			kingBlack->draw();
+		}
+	}
+
+	/*std::string blackPos = "a2";
+	move->placePiece(&pieceMat, blackPos);
+	pawnBlack->draw();*/
+	
 	glfwSwapBuffers(window); //Skopiuj bufor tylny do bufora przedniego
 }
 
@@ -332,17 +253,13 @@ int main(void)
 	}
 
 	initOpenGLProgram(window); //Operacje inicjujące
-	loadBoard();
 	//Główna pętla
-	float angle_x = 0; //zadeklaruj zmienną przechowującą aktualny kąt obrotu
-	float angle_y = 0; //zadeklaruj zmienną przechowującą aktualny kąt obrotu
+	
 	glfwSetTime(0); //Wyzeruj licznik czasu
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
-		angle_x += speed_x * glfwGetTime(); //Oblicz kąt o jaki obiekt obrócił się podczas poprzedniej klatki
-		angle_y += speed_y * glfwGetTime(); //Oblicz kąt o jaki obiekt obrócił się podczas poprzedniej klatki
 		glfwSetTime(0); //Wyzeruj licznik czasu
-		drawScene(window,angle_x,angle_y); //Wykonaj procedurę rysującą
+		drawScene(window); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 

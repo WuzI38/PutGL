@@ -19,26 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers\allmodels.h" />
     <ClInclude Include="headers\constants.h" />
-    <ClInclude Include="headers\cube.h" />
     <ClInclude Include="headers\lodepng.h" />
     <ClInclude Include="headers\model.h" />
-    <ClInclude Include="headers\myCube.h" />
+    <ClInclude Include="headers\piece_mover.h" />
     <ClInclude Include="headers\shaderprogram.h" />
-    <ClInclude Include="headers\sphere.h" />
-    <ClInclude Include="headers\teapot.h" />
-    <ClInclude Include="headers\torus.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main_file.cpp" />
-    <ClCompile Include="src\cube.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\model.cpp" />
+    <ClCompile Include="src\piece_mover.cpp" />
     <ClCompile Include="src\shaderprogram.cpp" />
-    <ClCompile Include="src\sphere.cpp" />
-    <ClCompile Include="src\teapot.cpp" />
-    <ClCompile Include="src\torus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\f_colored.glsl" />
