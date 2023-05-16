@@ -32,8 +32,20 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "headers/constants.h"
 #include "headers/shaderprogram.h"
 
-bool position = true;
 
+char board[8][8] = {
+	{'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+	{'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+	{'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	{'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	{'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	{'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	{'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+	{'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+}; // reprezentacja planszy, dużel litery - czarne, małe - białe, x - puste
+
+float speed_y = 0; // prędkość obrotu kamery w poziomie
+float speed_x = 0; // prędkość obrotu kamery w pionie
 PieceMover* move;
 
 Model* chessboard;
@@ -72,20 +84,26 @@ void key_callback(
 ) {
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_UP) {
-			position = true;
+			speed_x = PI / 5; // jeżeli strzałka w górę to kamera przesuwa się w górę
 		}
 		if (key == GLFW_KEY_DOWN) {
-			position = false;
+			speed_x = - PI / 5; // jeżeli strzałka w dół kamera przesuwa się w dół
+		}
+		if (key == GLFW_KEY_RIGHT) {
+			speed_y = PI / 4;
+		}
+		if (key == GLFW_KEY_LEFT) {
+			speed_y = -PI / 4;
 		}
 	}
-	/*if (action == GLFW_RELEASE) {
+	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) {
 			speed_y = 0;
 		}
 		if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) {
 			speed_x = 0;
 		}
-	}*/
+	}
 }
 
 
@@ -94,9 +112,13 @@ void key_callback(
 void initOpenGLProgram(GLFWwindow* window) {
     initShaders();
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
-	glClearColor(0, 0, 0, 1); //Ustaw kolor czyszczenia bufora kolorów
+	glClearColor(1, 1, 1, 0.6); //Ustaw kolor czyszczenia bufora kolorów
 	glEnable(GL_DEPTH_TEST); //Włącz test głębokości na pikselach
 	glfwSetKeyCallback(window, key_callback);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	move = new PieceMover(WINDOW_SIZE);
 
@@ -130,7 +152,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window) {
+void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Wyczyść bufor koloru i bufor głębokości
 
@@ -138,10 +160,8 @@ void drawScene(GLFWwindow* window) {
 
 	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
 	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
-
-	if (!position) {
-		V = glm::lookAt(glm::vec3(0.0f, 3.0f, -5.0f), glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz widoku
-	}
+	V = glm::rotate(V, angle_x, glm::vec3(0.0f, 0.0f, 1.0f)); // Obrót kamery w pione
+	V = glm::rotate(V, angle_y, glm::vec3(0.0f, 1.0f, 0.0f)); // Obrót kamery w poziomie
 
 	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
 	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
@@ -172,7 +192,6 @@ void drawScene(GLFWwindow* window) {
 		std::string whitePos = std::string(1, letter) + "7";
 		move->placePiece(&pieceMat, whitePos);
 		pawnWhite->draw();
-
 		std::string blackPos = std::string(1, letter) + "2";
 		move->placePiece(&pieceMat, blackPos);
 		pawnBlack->draw();
@@ -215,10 +234,6 @@ void drawScene(GLFWwindow* window) {
 			kingBlack->draw();
 		}
 	}
-
-	/*std::string blackPos = "a2";
-	move->placePiece(&pieceMat, blackPos);
-	pawnBlack->draw();*/
 	
 	glfwSwapBuffers(window); //Skopiuj bufor tylny do bufora przedniego
 }
@@ -256,10 +271,16 @@ int main(void)
 	//Główna pętla
 	
 	glfwSetTime(0); //Wyzeruj licznik czasu
+	float angle_y = 0; // kąt obrotu kamery w poziomie
+	float angle_x = 0; // kąt obrotu kamery w pionie
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
+		angle_y += glfwGetTime() * speed_y; // wylicza kąt obrotu kamery w poziomie
+		angle_y = (angle_y > 2 * PI) ? 0 : (angle_y < - 2 * PI) ? 0 : angle_y; // ograniczenie, jeżeli wartość przekroczy 360 stopni resetuje się na 0 (aby uniknąć overflow)
+		angle_x += glfwGetTime() * speed_x; // wylicza kąt obrotu kamery w pionie
+		angle_x = (angle_x < -4 * PI / 10) ? -4 * PI / 10 : (angle_x > 0) ? 0 : angle_x;  // ograniczenie, tak samo jak wyżej, kamera patrzy na stolik maksymalnie od boku albo od góry
 		glfwSetTime(0); //Wyzeruj licznik czasu
-		drawScene(window); //Wykonaj procedurę rysującą
+		drawScene(window, angle_y, angle_x); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 
