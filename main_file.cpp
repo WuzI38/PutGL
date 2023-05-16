@@ -43,6 +43,9 @@ char board[8][8] = {
 	{'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
 	{'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
 }; // reprezentacja planszy, dużel litery - czarne, małe - białe, x - puste
+// refactor the code later to use this array
+
+
 
 float speed_y = 0; // prędkość obrotu kamery w poziomie
 float speed_x = 0; // prędkość obrotu kamery w pionie
@@ -150,6 +153,14 @@ void freeOpenGLProgram(GLFWwindow* window) {
     freeShaders();
 }
 
+void read_move(std::string line) {
+	int row1 = (int)line.at(0) - (int) 'a';
+	int col1 = line.at(1);
+	int row2 = (int)line.at(3) - (int)'a';
+	int col2 = line.at(4);
+
+}
+
 
 //Procedura rysująca zawartość sceny
 void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
@@ -174,7 +185,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	table->draw();
 
 	glm::mat4 chessboardMat = glm::mat4(1.0f);
-	chessboardMat = glm::translate(chessboardMat, glm::vec3(0.0f, 1.2f, 0.0f));
+	chessboardMat = glm::translate(chessboardMat, glm::vec3(0.0f, 1.15f, 0.0f));
 	chessboardMat = glm::rotate(chessboardMat, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
 	chessboardMat = glm::scale(chessboardMat, glm::vec3(0.02f, 0.02f, 0.02f));
 
@@ -183,11 +194,11 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	chessboard->draw();
 
 	glm::mat4 pieceMat = glm::mat4(1.0f);
-	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.2f, 0.0f));
+	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.15f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
 
 	// Move every piece to its position
-
+	/*
 	for (char letter = 'a'; letter <= 'h'; ++letter) {
 		std::string whitePos = std::string(1, letter) + "7";
 		move->placePiece(&pieceMat, whitePos);
@@ -232,6 +243,65 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			kingWhite->draw();
 			move->placePiece(&pieceMat, blackPos);
 			kingBlack->draw();
+		}
+	}*/
+	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			std::string pos = std::string(1, (char)'a' + j) + (char)((int) '1' + i);
+			char piece = board[i][j];
+			switch (piece)
+			{
+			case 'p':
+				move->placePiece(&pieceMat, pos);
+				pawnWhite->draw();
+				break;
+			case 'P':
+				move->placePiece(&pieceMat, pos);
+				pawnBlack->draw();
+				break;
+			case 'b':
+				move->placePiece(&pieceMat, pos);
+				bishopWhite->draw();
+				break;
+			case 'B':
+				move->placePiece(&pieceMat, pos);
+				bishopBlack->draw();
+				break;
+			case 'n':
+				move->placePiece(&pieceMat, pos);
+				knightWhite->draw();
+				break;
+			case 'N':
+				move->placePiece(&pieceMat, pos);
+				knightBlack->draw();
+				break;
+			case 'r':
+				move->placePiece(&pieceMat, pos);
+				rookWhite->draw();
+			case 'R':
+				move->placePiece(&pieceMat, pos);
+				rookBlack->draw();
+				break;
+			case 'q':
+				move->placePiece(&pieceMat, pos);
+				queenWhite->draw();
+				break;
+			case 'Q':
+				move->placePiece(&pieceMat, pos);
+				queenBlack->draw();
+				break;
+			case 'k':
+				move->placePiece(&pieceMat, pos);
+				kingWhite->draw();
+				break;
+			case 'K':
+				move->placePiece(&pieceMat, pos);
+				kingBlack->draw();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 	
