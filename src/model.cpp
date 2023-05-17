@@ -36,30 +36,7 @@ void Model::loadModel(std::string filepath)
 	}
 }
 
-void Model::loadTexture(std::string filepath) {
-	GLuint tex;
-	glActiveTexture(GL_TEXTURE0);
-
-	// Load to memory
-	std::vector<unsigned char> image;
-	unsigned width, height;
-	// Load image
-	unsigned error = lodepng::decode(image, width, height, filepath);
-	/*if (!error) {
-		std::cerr << "Error: the texture cannot be loaded properly" << std::endl;
-		return;
-	}*/
-
-	// Import to GPU memory
-	glGenTextures(1, &tex); // Init handle
-	glBindTexture(GL_TEXTURE_2D, tex); // Activate handle
-	// Load image + handle
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+void Model::loadTexture(GLuint tex) {
 	this->texture = tex;
 }
 
@@ -85,9 +62,9 @@ void Model::draw() {
 	glDisableVertexAttribArray(spLambertTextured->a("normal"));
 }
 
-Model::Model(const char* modelPath, const char* texturePath) {
+Model::Model(const char* modelPath, GLuint tex) {
 	this->loadModel(modelPath);
-	this->loadTexture(texturePath);
+	this->loadTexture(tex);
 }
 
 Model::~Model() {

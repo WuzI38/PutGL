@@ -45,10 +45,14 @@ char board[8][8] = {
 }; // reprezentacja planszy, dużel litery - czarne, małe - białe, x - puste
 // refactor the code later to use this array
 
-
+GLuint boardTex;
+GLuint tableTex;
+GLuint whiteTex;
+GLuint blackTex;
 
 float speed_y = 0; // prędkość obrotu kamery w poziomie
 float speed_x = 0; // prędkość obrotu kamery w pionie
+float waitTime = 0;
 PieceMover* move;
 
 Model* chessboard;
@@ -76,6 +80,29 @@ Model* kingBlack;
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
+}
+
+
+GLuint load_texture(std::string filepath) {
+	
+	
+	GLuint tex;
+	// Load to memory
+	std::vector<unsigned char> image;
+	unsigned width, height;
+	// load image
+	unsigned error = lodepng::decode(image, width, height, filepath);
+	// Import to GPU memory
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &tex); // Init handle
+	glBindTexture(GL_TEXTURE_2D, tex); // Activate handle
+	// Load image + handle
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	return tex;
 }
 
 void key_callback(
@@ -113,6 +140,10 @@ void key_callback(
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
+	boardTex = load_texture("textures/chessboard.png");
+	tableTex = load_texture("textures/table.png");
+	whiteTex = load_texture("textures/white.png");
+	blackTex = load_texture("textures/black.png");
     initShaders();
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(1, 1, 1, 0.6); //Ustaw kolor czyszczenia bufora kolorów
@@ -125,26 +156,26 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	move = new PieceMover(WINDOW_SIZE);
 
-	chessboard = new Model("objects/chessboard.obj", "textures/chessboard.png");
-	table = new Model("objects/table.obj", "textures/table.png");
+	chessboard = new Model("objects/chessboard.obj", boardTex);
+	table = new Model("objects/table.obj", tableTex);
 
-	pawnWhite = new Model("objects/pawn.obj", "textures/white.png");
-	pawnBlack = new Model("objects/pawn.obj", "textures/black.png");
+	pawnWhite = new Model("objects/pawn.obj", whiteTex);
+	pawnBlack = new Model("objects/pawn.obj", blackTex);
 
-	rookWhite = new Model("objects/rook.obj", "textures/white.png");
-	rookBlack = new Model("objects/rook.obj", "textures/black.png");
+	rookWhite = new Model("objects/rook.obj", whiteTex);
+	rookBlack = new Model("objects/rook.obj", blackTex);
 
-	knightWhite = new Model("objects/knight.obj", "textures/white.png");
-	knightBlack = new Model("objects/knight.obj", "textures/black.png");
+	knightWhite = new Model("objects/knight.obj", whiteTex);
+	knightBlack = new Model("objects/knight.obj", blackTex);
 
-	bishopWhite = new Model("objects/bishop.obj", "textures/white.png");
-	bishopBlack = new Model("objects/bishop.obj", "textures/black.png");
+	bishopWhite = new Model("objects/bishop.obj", whiteTex);
+	bishopBlack = new Model("objects/bishop.obj", blackTex);
 
-	queenWhite = new Model("objects/queen.obj", "textures/white.png");
-	queenBlack = new Model("objects/queen.obj", "textures/black.png");
+	queenWhite = new Model("objects/queen.obj", whiteTex);
+	queenBlack = new Model("objects/queen.obj", blackTex);
 
-	kingWhite = new Model("objects/king.obj", "textures/white.png");
-	kingBlack = new Model("objects/king.obj", "textures/black.png");
+	kingWhite = new Model("objects/king.obj", whiteTex);
+	kingBlack = new Model("objects/king.obj", blackTex);
 }
 
 
@@ -197,6 +228,12 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.15f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
 	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
+
+	if (waitTime > 5) {
+
+	}
+
+
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			std::string pos = std::string(1, (char)'a' + j) + (char)((int) '1' + i);
@@ -294,8 +331,10 @@ int main(void)
 	glfwSetTime(0); //Wyzeruj licznik czasu
 	float angle_y = 0; // kąt obrotu kamery w poziomie
 	float angle_x = 0; // kąt obrotu kamery w pionie
+	
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
+		waitTime += glfwGetTime();
 		angle_y += glfwGetTime() * speed_y; // wylicza kąt obrotu kamery w poziomie
 		angle_y = (angle_y > 2 * PI) ? 0 : (angle_y < - 2 * PI) ? 0 : angle_y; // ograniczenie, jeżeli wartość przekroczy 360 stopni resetuje się na 0 (aby uniknąć overflow)
 		angle_x += glfwGetTime() * speed_x; // wylicza kąt obrotu kamery w pionie

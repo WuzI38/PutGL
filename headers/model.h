@@ -18,7 +18,7 @@
 
 class Model {
 public:
-	Model(const char* modelPath, const char* texturePath);
+	Model(const char* modelPath, GLuint tex);
 	virtual ~Model();
 	virtual void draw();
 
@@ -30,7 +30,7 @@ private:
 	GLuint texture;
 
 	virtual void loadModel(std::string filepath);
-	virtual void loadTexture(std::string filepath);
+	virtual void loadTexture(GLuint tex);
 };
 
 #endif
