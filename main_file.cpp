@@ -196,55 +196,6 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	glm::mat4 pieceMat = glm::mat4(1.0f);
 	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.15f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
-
-	// Move every piece to its position
-	/*
-	for (char letter = 'a'; letter <= 'h'; ++letter) {
-		std::string whitePos = std::string(1, letter) + "7";
-		move->placePiece(&pieceMat, whitePos);
-		pawnWhite->draw();
-		std::string blackPos = std::string(1, letter) + "2";
-		move->placePiece(&pieceMat, blackPos);
-		pawnBlack->draw();
-
-		whitePos = std::string(1, letter) + "8";
-		blackPos = std::string(1, letter) + "1";
-
-		if (letter == 'a' || letter == 'h') { // THIS THING CAN BE OF COURSE OPTIMIZED... 
-			move->placePiece(&pieceMat, whitePos); // <- YEP, NO REDUNDANCY AT ALL
-			rookWhite->draw();
-			move->placePiece(&pieceMat, blackPos);
-			rookBlack->draw();
-		}
-
-		if (letter == 'b' || letter == 'g') {
-			move->placePiece(&pieceMat, whitePos); // <- YEP, NO REDUNDANCY AT ALL
-			knightWhite->draw();
-			move->placePiece(&pieceMat, blackPos);
-			knightBlack->draw();
-		}
-
-		if (letter == 'c' || letter == 'f') {
-			move->placePiece(&pieceMat, whitePos);
-			bishopWhite->draw();
-			move->placePiece(&pieceMat, blackPos);
-			bishopBlack->draw();
-		}
-
-		if (letter == 'd') {
-			move->placePiece(&pieceMat, whitePos);
-			queenWhite->draw();
-			move->placePiece(&pieceMat, blackPos);
-			queenBlack->draw();
-		}
-
-		if (letter == 'e') {
-			move->placePiece(&pieceMat, whitePos);
-			kingWhite->draw();
-			move->placePiece(&pieceMat, blackPos);
-			kingBlack->draw();
-		}
-	}*/
 	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
