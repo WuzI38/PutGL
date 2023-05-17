@@ -233,7 +233,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			int row2 = (int)line.at(3) - (int)'a';
 			int col2 = line.at(4) - (int)'1';
 			int tab[] = { row1, col1, row2, col2 };
-			board[tab[3]][tab[2]] = board[tab[1]][tab[0]];
+			board[tab[3]][tab[2]] = (line.at(6) == '0') ? board[tab[1]][tab[0]] : line.at(6);
 			board[tab[1]][tab[0]] = 'x';
 		}
 	}
