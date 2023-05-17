@@ -27,6 +27,8 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
 #include <stdio.h>
+#include <fstream>
+#include <sstream>
 #include "headers/model.h"
 #include "headers/piece_mover.h"
 #include "headers/constants.h"
@@ -76,6 +78,7 @@ Model* queenBlack;
 Model* kingWhite;
 Model* kingBlack;
 
+std::ifstream infile("games/game.csv");
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -184,15 +187,6 @@ void freeOpenGLProgram(GLFWwindow* window) {
     freeShaders();
 }
 
-void read_move(std::string line) {
-	int row1 = (int)line.at(0) - (int) 'a';
-	int col1 = line.at(1);
-	int row2 = (int)line.at(3) - (int)'a';
-	int col2 = line.at(4);
-
-}
-
-
 //Procedura rysująca zawartość sceny
 void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
@@ -209,7 +203,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
 	
 	glm::mat4 tableMat = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
-	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //Pomnóż macierz modelu razy macierz obrotu o kąt angle wokół osi X
+	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //skalowanie stołu
 
 	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tableMat));
 
@@ -229,8 +223,19 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
 	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
 
-	if (waitTime > 5) {
-
+	// move processing
+	if (waitTime > 2) {
+		waitTime = 0;
+		std::string line;
+		if (std::getline(infile, line)) {
+			int row1 = (int)line.at(0) - (int)'a';
+			int col1 = line.at(1) - (int)'1';
+			int row2 = (int)line.at(3) - (int)'a';
+			int col2 = line.at(4) - (int)'1';
+			int tab[] = { row1, col1, row2, col2 };
+			board[tab[3]][tab[2]] = board[tab[1]][tab[0]];
+			board[tab[1]][tab[0]] = 'x';
+		}
 	}
 
 
