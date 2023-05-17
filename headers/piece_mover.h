@@ -9,6 +9,7 @@
 #include <assimp/postprocess.h>
 #include "headers/lodepng.h"
 #include "headers/shaderprogram.h"
+#include "headers/constants.h"
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -23,7 +24,7 @@ class PieceMover {
 public:
 	PieceMover(int localScale);
 	virtual void movePiece(glm::mat4* matrix, std::string field); // Fluent movement - not implemented
-	virtual void placePiece(glm::mat4* matrix, std::string field); // Teleport a piece to given position
+	virtual void placePiece(glm::mat4* matrix, std::string field, bool is_white=false); // Teleport a piece to given position
 
 private:
 	std::map<std::string, std::pair<float, float>> positions;

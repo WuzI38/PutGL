@@ -10,9 +10,10 @@ void PieceMover::movePiece(glm::mat4* matrix, std::string field) {
 }
 
 
-void PieceMover::placePiece(glm::mat4* matrix, std::string field) {
+void PieceMover::placePiece(glm::mat4* matrix, std::string field, bool is_white) {
     glm::mat4 pieceMat = glm::translate(*matrix, glm::vec3(this->positions[field].first, 0.0f, this->positions[field].second));
     pieceMat = glm::scale(pieceMat, glm::vec3(0.8f, 0.8f, 0.8f));
+    pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat;
     //std::cout << this->positions[field].first << " " << this->positions[field].second << std::endl;
     glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(pieceMat));
 }

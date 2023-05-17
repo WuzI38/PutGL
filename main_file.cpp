@@ -261,7 +261,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 				pawnBlack->draw();
 				break;
 			case 'b':
-				move->placePiece(&pieceMat, pos);
+				move->placePiece(&pieceMat, pos, true);
 				bishopWhite->draw();
 				break;
 			case 'B':
@@ -269,7 +269,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 				bishopBlack->draw();
 				break;
 			case 'n':
-				move->placePiece(&pieceMat, pos);
+				move->placePiece(&pieceMat, pos, true);
 				knightWhite->draw();
 				break;
 			case 'N':
@@ -277,14 +277,14 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 				knightBlack->draw();
 				break;
 			case 'r':
-				move->placePiece(&pieceMat, pos);
+				move->placePiece(&pieceMat, pos, true);
 				rookWhite->draw();
 			case 'R':
 				move->placePiece(&pieceMat, pos);
 				rookBlack->draw();
 				break;
 			case 'q':
-				move->placePiece(&pieceMat, pos);
+				move->placePiece(&pieceMat, pos, true);
 				queenWhite->draw();
 				break;
 			case 'Q':
@@ -292,7 +292,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 				queenBlack->draw();
 				break;
 			case 'k':
-				move->placePiece(&pieceMat, pos);
+				move->placePiece(&pieceMat, pos, true);
 				kingWhite->draw();
 				break;
 			case 'K':
