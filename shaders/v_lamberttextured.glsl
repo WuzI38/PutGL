@@ -7,6 +7,7 @@ uniform mat4 M;
 
 
 uniform vec4 lightDir=vec4(0,0,4,0);
+uniform vec4 light2Dir=vec4(4,0,3,0);
 
 //Atrybuty
 layout (location=0) in vec4 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
@@ -17,7 +18,7 @@ layout (location=2) in vec2 texCoord; //wspó³rzêdne teksturowania
 //Zmienne interpolowane
 out vec2 i_tc;
 out float i_nl;
-
+out float i_nl2;
 void main(void) {
     gl_Position=P*V*M*vertex;
 
@@ -25,5 +26,6 @@ void main(void) {
     vec4 n=normalize(V*G*normal);
 
     i_nl=clamp(dot(n,lightDir),0,1);
+    i_nl2=clamp(dot(n,light2Dir),0,1);
     i_tc=texCoord;
 }
