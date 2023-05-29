@@ -149,7 +149,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	blackTex = load_texture("textures/black.png");
     initShaders();
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
-	glClearColor(1, 1, 1, 0.6); //Ustaw kolor czyszczenia bufora kolorów
+	glClearColor(0, 0, 0.545, 1); //Ustaw kolor czyszczenia bufora kolorów
 	glEnable(GL_DEPTH_TEST); //Włącz test głębokości na pikselach
 	glfwSetKeyCallback(window, key_callback);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -219,7 +219,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	chessboard->draw();
 
 	glm::mat4 pieceMat = glm::mat4(1.0f);
-	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.15f, 0.0f));
+	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.147f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
 	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
 
