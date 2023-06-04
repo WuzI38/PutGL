@@ -54,7 +54,7 @@ GLuint blackTex;
 
 float speed_y = 0; // prędkość obrotu kamery w poziomie
 float speed_x = 0; // prędkość obrotu kamery w pionie
-float waitTime = 0;
+float moveTime = 0; // czas pomiędzy rysowaniem kolejnych klatek
 PieceMover* move;
 
 Model* chessboard;
@@ -81,15 +81,21 @@ Model* kingBlack;
 std::ifstream infile("games/gamePromotion.csv");
 
 // Zmienne globalne do ruchu figur
+// model figury która się rusza
 Model* currModel;
+// kolor figury która się rusza
 bool currColor = true;
 bool moveStarted = false;
 bool moveEnded = true;
 std::string line;
+// zmienna tekstowa przechowująca reprezentację obecnie ruszającej się figury
 char currPiece;
+// wiersz do którego rusza się figura
 int destRow;
+// kolumna do której rusza się figura
 int destCol;
-
+// flaga reprezentująca to czy ruch jest roszadą
+bool isCastling = false;
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -238,17 +244,19 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	
 	if (moveEnded && !moveStarted) {
 		if (std::getline(infile, line)) {
-			int row1 = (int)line.at(0) - (int)'a';
-			int col1 = line.at(1) - (int)'1';
-			destRow = (int)line.at(3) - (int)'a';
-			destCol = line.at(4) - (int)'1';
-			std::string destPos = line.substr(3, 2);
-			std::string srcPos = line.substr(0, 2);
-			move->setupMove(&pieceMat, srcPos, destPos);
+			int row1 = (int)line.at(0) - (int)'a'; // wiersz pola z którego następuje ruch
+			int col1 = line.at(1) - (int)'1'; // kolumna pola z którego następuje ruch
+			destRow = (int)line.at(3) - (int)'a'; // przypisanie do zmiennej globalnej wiersza pola do którego następuje ruch
+			destCol = line.at(4) - (int)'1'; // przypisanie do zmiennej globalnej kolumny pola do którego następuje ruch
+			std::string destPos = line.substr(3, 2); // zmienna tekstowa reprezentująca pole do którego następuje ruch
+			std::string srcPos = line.substr(0, 2); // zmienna tekstowa reprezentująca pole z którego następuje ruch
+			move->setupMove(&pieceMat, srcPos, destPos); // wywołanie funkcji setupMove, wyliczenie dystansu który musi przebyć figura, takie rzeczy
 			moveStarted = true;
 			moveEnded = false;
-			char piece = board[col1][row1];
-			currPiece = piece;
+			char piece = board[col1][row1]; 
+			currPiece = piece; // zmienna przechowująca jaka figura się rusza
+
+			// switch sprawdza jaki model pasuje do przesuwanej figury
 			switch (piece)
 			{
 			case 'p':
@@ -301,16 +309,17 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			default:
 				break;
 			}
-			board[col1][row1] = 'x';
+			board[col1][row1] = 'x';// pole z którego rusza się figura staje się puste
 		}
 	}
+	// jeżeli ruch się zaczął a jeszcze nie skończył
 	if (moveStarted && !moveEnded) {
-		moveEnded = move->movePiece(waitTime, currColor);
-		currModel->draw();
+		moveEnded = move->movePiece(moveTime, currColor); // ruch figury, wyliczenie macierzy
+		currModel->draw(); // rysowanie modelu
 	}
 	if (moveEnded && moveStarted) {
 		moveStarted = false;
-		board[destCol][destRow] = currPiece;
+		board[destCol][destRow] = currPiece; // ustawienie figury na planszy
 	}
 
 
@@ -431,7 +440,7 @@ int main(void)
 	
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
-		waitTime = glfwGetTime();
+		moveTime = glfwGetTime();
 		angle_y += glfwGetTime() * speed_y; // wylicza kąt obrotu kamery w poziomie
 		angle_y = (angle_y > 2 * PI) ? 0 : (angle_y < - 2 * PI) ? 0 : angle_y; // ograniczenie, jeżeli wartość przekroczy 360 stopni resetuje się na 0 (aby uniknąć overflow)
 		angle_x += glfwGetTime() * speed_x; // wylicza kąt obrotu kamery w pionie
