@@ -23,13 +23,19 @@
 class PieceMover {
 public:
 	PieceMover(int localScale);
-	virtual void movePiece(glm::mat4* matrix, std::string field); // Fluent movement - not implemented
+	virtual bool movePiece(float time, bool is_white); // Fluent movement
+	virtual void setupMove(glm::mat4* matrix, std::string src_pos, std::string dest_pos); // Setup for fluent movement
 	virtual void placePiece(glm::mat4* matrix, std::string field, bool is_white=false); // Teleport a piece to given position
+
 
 private:
 	std::map<std::string, std::pair<float, float>> positions;
 	float localScale;
-
+	std::string srcPos; // reprezentacja tekstowa pola z którego wykonuje siê ruch
+	std::string destPos; // reprezentacja tekstowa pola do którego wykonuje siê ruch
+	glm::mat4 currMat; // aktualna macierz przesuwanej figury
+	float dist[2]; // dystans do pokonania miêdzy srcPos a destPos
+	float distLeft[2]; // dystans jaki zosta³ do pokonania
 	virtual void calculatePositions();
 };
 

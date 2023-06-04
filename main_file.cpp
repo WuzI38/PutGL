@@ -54,7 +54,7 @@ GLuint blackTex;
 
 float speed_y = 0; // prędkość obrotu kamery w poziomie
 float speed_x = 0; // prędkość obrotu kamery w pionie
-float waitTime = 0;
+float moveTime = 0; // czas pomiędzy rysowaniem kolejnych klatek
 PieceMover* move;
 
 Model* chessboard;
@@ -79,6 +79,23 @@ Model* kingWhite;
 Model* kingBlack;
 
 std::ifstream infile("games/gamePromotion.csv");
+
+// Zmienne globalne do ruchu figur
+// model figury która się rusza
+Model* currModel;
+// kolor figury która się rusza
+bool currColor = true;
+bool moveStarted = false;
+bool moveEnded = true;
+std::string line;
+// zmienna tekstowa przechowująca reprezentację obecnie ruszającej się figury
+char currPiece;
+// wiersz do którego rusza się figura
+int destRow;
+// kolumna do której rusza się figura
+int destCol;
+// flaga reprezentująca to czy ruch jest roszadą
+bool isCastling = false;
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -143,6 +160,7 @@ void key_callback(
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
+	// wczytanie tekstur
 	boardTex = load_texture("textures/chessboard.png");
 	tableTex = load_texture("textures/table.png");
 	whiteTex = load_texture("textures/white.png");
@@ -151,14 +169,14 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0.545, 1); //Ustaw kolor czyszczenia bufora kolorów
 	glEnable(GL_DEPTH_TEST); //Włącz test głębokości na pikselach
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetKeyCallback(window, key_callback); // włączenie obsługi przycisków
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	move = new PieceMover(WINDOW_SIZE);
-
+	// wczytanie modeli
 	chessboard = new Model("objects/chessboard.obj", boardTex);
 	table = new Model("objects/table.obj", tableTex);
 
@@ -221,25 +239,108 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	glm::mat4 pieceMat = glm::mat4(1.0f);
 	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.147f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
-	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
+	
 
-	// move processing
-	if (waitTime > 2) {
-		waitTime = 0;
-		std::string line;
+	// proper move processing
+	
+	if (moveEnded && !moveStarted) {
 		if (std::getline(infile, line)) {
-			int row1 = (int)line.at(0) - (int)'a';
-			int col1 = line.at(1) - (int)'1';
-			int row2 = (int)line.at(3) - (int)'a';
-			int col2 = line.at(4) - (int)'1';
-			int tab[] = { row1, col1, row2, col2 };
-			// teleports piece from one square to another, also handles promotion
-			board[tab[3]][tab[2]] = (line.at(6) == '0') ? board[tab[1]][tab[0]] : (islower(board[tab[1]][tab[0]])) ? tolower(line.at(6)) : line.at(6);
-			board[tab[1]][tab[0]] = 'x';
+			int row1 = (int)line.at(0) - (int)'a'; // wiersz pola z którego następuje ruch
+			int col1 = line.at(1) - (int)'1'; // kolumna pola z którego następuje ruch
+			destRow = (int)line.at(3) - (int)'a'; // przypisanie do zmiennej globalnej wiersza pola do którego następuje ruch
+			destCol = line.at(4) - (int)'1'; // przypisanie do zmiennej globalnej kolumny pola do którego następuje ruch
+			std::string destPos = line.substr(3, 2); // zmienna tekstowa reprezentująca pole do którego następuje ruch
+			std::string srcPos = line.substr(0, 2); // zmienna tekstowa reprezentująca pole z którego następuje ruch
+			move->setupMove(&pieceMat, srcPos, destPos); // wywołanie funkcji setupMove, wyliczenie dystansu który musi przebyć figura, takie rzeczy
+			moveStarted = true;
+			moveEnded = false;
+			char piece = board[col1][row1]; 
+			currPiece = piece; // zmienna przechowująca jaka figura się rusza
+
+			// switch sprawdza jaki model pasuje do przesuwanej figury
+			switch (piece)
+			{
+			case 'p':
+				currModel = pawnWhite;
+				currColor = true;
+				break;
+			case 'P':
+				currModel = pawnBlack;
+				currColor = false;
+				break;
+			case 'b':
+				currModel = bishopWhite;
+				currColor = true;
+				break;
+			case 'B':
+				currModel = bishopBlack;
+				currColor = false;
+				break;
+			case 'n':
+				currModel = knightWhite;
+				currColor = true;
+				break;
+			case 'N':
+				currModel = knightBlack;
+				currColor = false;
+				break;
+			case 'r':
+				currModel = rookWhite;
+				currColor = true;
+			case 'R':
+				currModel = rookBlack;
+				currColor = false;
+				break;
+			case 'q':
+				currModel = queenWhite;
+				currColor = true;
+				break;
+			case 'Q':
+				currModel = queenBlack;
+				currColor = false;
+				break;
+			case 'k':
+				currModel = kingWhite;
+				currColor = true;
+				break;
+			case 'K':
+				currModel = kingBlack;
+				currColor = false;
+				break;
+			default:
+				break;
+			}
+			board[col1][row1] = 'x';// pole z którego rusza się figura staje się puste
 		}
+	}
+	// jeżeli ruch się zaczął a jeszcze nie skończył
+	if (moveStarted && !moveEnded) {
+		moveEnded = move->movePiece(moveTime, currColor); // ruch figury, wyliczenie macierzy
+		currModel->draw(); // rysowanie modelu
+	}
+	if (moveEnded && moveStarted) {
+		moveStarted = false;
+		board[destCol][destRow] = currPiece; // ustawienie figury na planszy
 	}
 
 
+	// move processing
+	//if (waitTime > 2) {
+	//	waitTime = 0;
+	//	std::string line;
+	//	if (std::getline(infile, line)) {
+	//		int row1 = (int)line.at(0) - (int)'a';
+	//		int col1 = line.at(1) - (int)'1';
+	//		int row2 = (int)line.at(3) - (int)'a';
+	//		int col2 = line.at(4) - (int)'1';
+	//		int tab[] = { row1, col1, row2, col2 };
+	//		// teleports piece from one square to another, also handles promotion
+	//		board[tab[3]][tab[2]] = (line.at(6) == '0') ? board[tab[1]][tab[0]] : (islower(board[tab[1]][tab[0]])) ? tolower(line.at(6)) : line.at(6);
+	//		board[tab[1]][tab[0]] = 'x';
+	//	}
+	//}
+
+	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			std::string pos = std::string(1, (char)'a' + j) + (char)((int) '1' + i);
@@ -340,7 +441,7 @@ int main(void)
 	
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
-		waitTime += glfwGetTime();
+		moveTime = glfwGetTime();
 		angle_y += glfwGetTime() * speed_y; // wylicza kąt obrotu kamery w poziomie
 		angle_y = (angle_y > 2 * PI) ? 0 : (angle_y < - 2 * PI) ? 0 : angle_y; // ograniczenie, jeżeli wartość przekroczy 360 stopni resetuje się na 0 (aby uniknąć overflow)
 		angle_x += glfwGetTime() * speed_x; // wylicza kąt obrotu kamery w pionie
