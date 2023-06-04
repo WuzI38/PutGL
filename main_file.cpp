@@ -80,6 +80,14 @@ Model* kingBlack;
 
 std::ifstream infile("games/gamePromotion.csv");
 
+// Zmienne globalne do ruchu figur
+Model* currModel;
+bool currColor = true;
+bool moveStarted = false;
+bool moveEnded = true;
+std::string line;
+
+
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
@@ -221,25 +229,100 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	glm::mat4 pieceMat = glm::mat4(1.0f);
 	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.147f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
-	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
+	
 
-	// move processing
-	if (waitTime > 2) {
-		waitTime = 0;
-		std::string line;
+	// proper move processing
+	
+	if (moveEnded && !moveStarted) {
 		if (std::getline(infile, line)) {
 			int row1 = (int)line.at(0) - (int)'a';
 			int col1 = line.at(1) - (int)'1';
-			int row2 = (int)line.at(3) - (int)'a';
-			int col2 = line.at(4) - (int)'1';
-			int tab[] = { row1, col1, row2, col2 };
-			// teleports piece from one square to another, also handles promotion
-			board[tab[3]][tab[2]] = (line.at(6) == '0') ? board[tab[1]][tab[0]] : (islower(board[tab[1]][tab[0]])) ? tolower(line.at(6)) : line.at(6);
-			board[tab[1]][tab[0]] = 'x';
+			std::string destPos = line.substr(3, 2);
+			std::string srcPos = line.substr(0, 2);
+			move->setupMove(&pieceMat, srcPos, destPos);
+			moveStarted = true;
+			moveEnded = false;
+			char piece = board[col1][row1];
+			switch (piece)
+			{
+			case 'p':
+				currModel = pawnWhite;
+				currColor = true;
+				break;
+			case 'P':
+				currModel = pawnBlack;
+				currColor = false;
+				break;
+			case 'b':
+				currModel = bishopWhite;
+				currColor = true;
+				break;
+			case 'B':
+				currModel = bishopBlack;
+				currColor = false;
+				break;
+			case 'n':
+				currModel = knightWhite;
+				currColor = true;
+				break;
+			case 'N':
+				currModel = knightBlack;
+				currColor = false;
+				break;
+			case 'r':
+				currModel = rookWhite;
+				currColor = true;
+			case 'R':
+				currModel = rookBlack;
+				currColor = false;
+				break;
+			case 'q':
+				currModel = queenWhite;
+				currColor = true;
+				break;
+			case 'Q':
+				currModel = queenBlack;
+				currColor = false;
+				break;
+			case 'k':
+				currModel = kingWhite;
+				currColor = true;
+				break;
+			case 'K':
+				currModel = kingBlack;
+				currColor = false;
+				break;
+			default:
+				break;
+			}
 		}
+	}
+	if (moveStarted && !moveEnded) {
+		moveEnded = move->movePiece(waitTime, currColor);
+		currModel->draw();
+	}
+	if (moveEnded && moveStarted) {
+		moveStarted = false;
 	}
 
 
+	// move processing
+	//if (waitTime > 2) {
+	//	waitTime = 0;
+	//	std::string line;
+	//	if (std::getline(infile, line)) {
+	//		int row1 = (int)line.at(0) - (int)'a';
+	//		int col1 = line.at(1) - (int)'1';
+	//		int row2 = (int)line.at(3) - (int)'a';
+	//		int col2 = line.at(4) - (int)'1';
+	//		int tab[] = { row1, col1, row2, col2 };
+	//		// teleports piece from one square to another, also handles promotion
+	//		board[tab[3]][tab[2]] = (line.at(6) == '0') ? board[tab[1]][tab[0]] : (islower(board[tab[1]][tab[0]])) ? tolower(line.at(6)) : line.at(6);
+	//		board[tab[1]][tab[0]] = 'x';
+	//	}
+	//}
+
+	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			std::string pos = std::string(1, (char)'a' + j) + (char)((int) '1' + i);
@@ -340,7 +423,7 @@ int main(void)
 	
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
-		waitTime += glfwGetTime();
+		waitTime = glfwGetTime();
 		angle_y += glfwGetTime() * speed_y; // wylicza kąt obrotu kamery w poziomie
 		angle_y = (angle_y > 2 * PI) ? 0 : (angle_y < - 2 * PI) ? 0 : angle_y; // ograniczenie, jeżeli wartość przekroczy 360 stopni resetuje się na 0 (aby uniknąć overflow)
 		angle_x += glfwGetTime() * speed_x; // wylicza kąt obrotu kamery w pionie
