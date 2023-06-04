@@ -160,6 +160,7 @@ void key_callback(
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
+	// wczytanie tekstur
 	boardTex = load_texture("textures/chessboard.png");
 	tableTex = load_texture("textures/table.png");
 	whiteTex = load_texture("textures/white.png");
@@ -168,14 +169,14 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0.545, 1); //Ustaw kolor czyszczenia bufora kolorów
 	glEnable(GL_DEPTH_TEST); //Włącz test głębokości na pikselach
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetKeyCallback(window, key_callback); // włączenie obsługi przycisków
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	move = new PieceMover(WINDOW_SIZE);
-
+	// wczytanie modeli
 	chessboard = new Model("objects/chessboard.obj", boardTex);
 	table = new Model("objects/table.obj", tableTex);
 
