@@ -96,6 +96,7 @@ int destRow;
 int destCol;
 // flaga reprezentująca to czy ruch jest roszadą
 bool isCastling = false;
+bool isEnPassant = false;
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -256,7 +257,12 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			moveEnded = false;
 			char piece = board[col1][row1]; 
 			currPiece = piece; // zmienna przechowująca jaka figura się rusza
-
+			if (tolower(currPiece) == 'p' && destRow != row1) {
+				isEnPassant = true;
+			}
+			else {
+				isEnPassant = false;
+			}
 			// switch sprawdza jaki model pasuje do przesuwanej figury
 			switch (piece)
 			{
@@ -321,6 +327,10 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	if (moveEnded && moveStarted) {
 		moveStarted = false;
 		board[destCol][destRow] = currPiece; // ustawienie figury na planszy
+		if (isEnPassant) {
+			int tempRow = (currColor) ? destRow - 1 : destRow + 1;
+			board[destCol][tempRow] = 'x';
+		}
 	}
 
 
