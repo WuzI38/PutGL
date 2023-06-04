@@ -1,11 +1,13 @@
 #version 330
 
 
-out vec4 pixelColor; //Zmienna wyjsciowa fragment shadera. Zapisuje sie do niej ostateczny (prawie) kolor piksela
+out vec4 FragColor; // zmienna wyjœciowa
 
+in vec3 TexCoords; // koordynaty teksturowania 
 
-uniform vec4 color=vec4(1,1,1,1);
+uniform samplerCube skybox; // tekstura skyboxa
 
-void main(void) {
-	pixelColor=color;
+void main()
+{    
+    FragColor = texture(skybox, TexCoords); // oblicznie koloru
 }

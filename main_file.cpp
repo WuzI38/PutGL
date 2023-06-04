@@ -47,10 +47,69 @@ char board[8][8] = {
 }; // reprezentacja planszy, dużel litery - czarne, małe - białe, x - puste
 // refactor the code later to use this array
 
+// vector ze ścieżkami do plików ze skyboxem
+std::vector<std::string> faces =
+{
+		"textures/right.jpg",
+		"textures/left.jpg",
+		"textures/top.jpg",
+		"textures/bottom.jpg",
+		"textures/front.jpg",
+		"textures/back.jpg"
+};
+
+// wierzchołki skyboxa
+float skyboxVertices[] = {
+	// positions          
+	-1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	-1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+
+	-1.0f, -1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+
+	-1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f
+};
+
+
 GLuint boardTex;
 GLuint tableTex;
 GLuint whiteTex;
 GLuint blackTex;
+GLuint skyboxTex;
 
 float speed_y = 0; // prędkość obrotu kamery w poziomie
 float speed_x = 0; // prędkość obrotu kamery w pionie
@@ -78,6 +137,7 @@ Model* queenBlack;
 Model* kingWhite;
 Model* kingBlack;
 
+Model* cubeModel;
 std::ifstream infile("games/gamePromotion.csv");
 
 // Zmienne globalne do ruchu figur
@@ -126,6 +186,32 @@ GLuint load_texture(std::string filepath) {
 	return tex;
 }
 
+// funckja do załadownia tekstury skyboxa
+unsigned int loadCubemap(std::vector<std::string> faces)
+{
+	unsigned int textureID; // id tekstury
+	glGenTextures(1, &textureID); // init handle
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID); // activate handle
+	std::vector<unsigned char> image; // zmiennia z danymi
+	unsigned width, height;
+	for (unsigned int i = 0; i < faces.size(); i++) // dla każdej ściany
+	{
+		unsigned error = lodepng::decode(image, width, height, faces[i]); // wczytanie tekstury
+		// przypisanie tekstury do kolejnych poziomów tekstury cube
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.data()
+		);
+	}
+	// ustawienie parametrów filtrowania i wrap
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
+
 void key_callback(
 	GLFWwindow* window,
 	int key,
@@ -166,6 +252,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	tableTex = load_texture("textures/table.png");
 	whiteTex = load_texture("textures/white.png");
 	blackTex = load_texture("textures/black.png");
+	skyboxTex = loadCubemap(faces);
+
     initShaders();
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0.545, 1); //Ustaw kolor czyszczenia bufora kolorów
@@ -211,23 +299,38 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Wyczyść bufor koloru i bufor głębokości
 
-	spLambertTextured->use(); //Aktywuj program cieniujący
+	
 
-	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
+	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 0.1f, 100.0f); //Wylicz macierz rzutowania
 	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
 	V = glm::rotate(V, angle_x, glm::vec3(0.0f, 0.0f, 1.0f)); // Obrót kamery w pione
 	V = glm::rotate(V, angle_y, glm::vec3(0.0f, 1.0f, 0.0f)); // Obrót kamery w poziomie
 
+	glDepthMask(GL_FALSE);
+	// sekcja rysowania skyboxa
+	spConstant->use(); //Aktywuj program cieniujący
+	glUniformMatrix4fv(spConstant->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
+	glVertexAttribPointer(spConstant->a("aPos"), 3, GL_FLOAT, false, 0, skyboxVertices);
+	
+	glm::mat4 view = glm::mat4(glm::mat3(V));
+	glUniformMatrix4fv(spConstant->u("V"), 1, false, glm::value_ptr(view)); //Załaduj do programu cieniującego macierz widoku dla skybox
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	glDepthMask(GL_TRUE);
+	// sekcja rysowania reszty sceny
+	spLambertTextured->use(); //Aktywuj program cieniujący
 	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
 	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	
+	// rysowanie stołu
 	glm::mat4 tableMat = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
 	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //skalowanie stołu
 
 	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tableMat));
 
 	table->draw();
-
+	
+	// rysowanie planszy
 	glm::mat4 chessboardMat = glm::mat4(1.0f);
 	chessboardMat = glm::translate(chessboardMat, glm::vec3(0.0f, 1.15f, 0.0f));
 	chessboardMat = glm::rotate(chessboardMat, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -237,6 +340,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 
 	chessboard->draw();
 
+	// stworzenie bazowej macierzy dla figur
 	glm::mat4 pieceMat = glm::mat4(1.0f);
 	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.147f, 0.0f));
 	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
