@@ -86,6 +86,9 @@ bool currColor = true;
 bool moveStarted = false;
 bool moveEnded = true;
 std::string line;
+char currPiece;
+int destRow;
+int destCol;
 
 
 //Procedura obsługi błędów
@@ -237,12 +240,15 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 		if (std::getline(infile, line)) {
 			int row1 = (int)line.at(0) - (int)'a';
 			int col1 = line.at(1) - (int)'1';
+			destRow = (int)line.at(3) - (int)'a';
+			destCol = line.at(4) - (int)'1';
 			std::string destPos = line.substr(3, 2);
 			std::string srcPos = line.substr(0, 2);
 			move->setupMove(&pieceMat, srcPos, destPos);
 			moveStarted = true;
 			moveEnded = false;
 			char piece = board[col1][row1];
+			currPiece = piece;
 			switch (piece)
 			{
 			case 'p':
@@ -295,6 +301,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			default:
 				break;
 			}
+			board[col1][row1] = 'x';
 		}
 	}
 	if (moveStarted && !moveEnded) {
@@ -303,6 +310,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	}
 	if (moveEnded && moveStarted) {
 		moveStarted = false;
+		board[destCol][destRow] = currPiece;
 	}
 
 

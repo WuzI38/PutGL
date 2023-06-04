@@ -25,12 +25,8 @@ bool PieceMover::movePiece(float time, bool is_white) {
 }
 
 void PieceMover::setupMove(glm::mat4* matrix, std::string src_pos, std::string dest_pos) {
-    float temp[] = { 0, 0 };
-    float temp2[] = { 0, 0 };
-    this->dist = temp;
     this->dist[0] = this->positions[dest_pos].first - this->positions[src_pos].first;
     this->dist[1] = this->positions[dest_pos].second - this->positions[src_pos].second;
-    this->distLeft = temp2;
     this->distLeft[0] = this->positions[dest_pos].first - this->positions[src_pos].first;
     this->distLeft[1] = this->positions[dest_pos].second - this->positions[src_pos].second;
     this->srcPos = src_pos;

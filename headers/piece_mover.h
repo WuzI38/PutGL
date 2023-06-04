@@ -34,8 +34,8 @@ private:
 	std::string srcPos;
 	std::string destPos;
 	glm::mat4 currMat;
-	float* dist;
-	float* distLeft;
+	float dist[2];
+	float distLeft[2];
 	virtual void calculatePositions();
 };
 
