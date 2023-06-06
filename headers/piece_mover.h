@@ -25,7 +25,7 @@ public:
 	PieceMover(int localScale);
 	virtual bool movePiece(float time, bool is_white); // Fluent movement
 	virtual void setupMove(glm::mat4* matrix, std::string src_pos, std::string dest_pos); // Setup for fluent movement
-	virtual void placePiece(glm::mat4* matrix, std::string field, bool is_white=false); // Teleport a piece to given position
+	virtual void placePiece(glm::mat4* matrix, std::string field, bool is_white=false); // Teleport piece to a given position
 
 
 private:

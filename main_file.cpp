@@ -47,10 +47,15 @@ char board[8][8] = {
 }; // reprezentacja planszy, dużel litery - czarne, małe - białe, x - puste
 // refactor the code later to use this array
 
+// Tekstury figur
 GLuint boardTex;
 GLuint tableTex;
 GLuint whiteTex;
 GLuint blackTex;
+
+// Tekstury ścian i podłogi
+GLuint floorTex;
+GLuint wallTex;
 
 float speed_y = 0; // prędkość obrotu kamery w poziomie
 float speed_x = 0; // prędkość obrotu kamery w pionie
@@ -77,6 +82,9 @@ Model* queenBlack;
 
 Model* kingWhite;
 Model* kingBlack;
+
+Model* floorPlane;
+Model* wallPlane;
 
 std::ifstream infile("games/gamePromotion.csv");
 
@@ -166,6 +174,11 @@ void initOpenGLProgram(GLFWwindow* window) {
 	tableTex = load_texture("textures/table.png");
 	whiteTex = load_texture("textures/white.png");
 	blackTex = load_texture("textures/black.png");
+
+	// textury ścian i podłogi
+	floorTex = load_texture("textures/floor.png");
+	wallTex = load_texture("textures/wall.png");
+
     initShaders();
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0.545, 1); //Ustaw kolor czyszczenia bufora kolorów
@@ -177,6 +190,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	move = new PieceMover(WINDOW_SIZE);
+
 	// wczytanie modeli
 	chessboard = new Model("objects/chessboard.obj", boardTex);
 	table = new Model("objects/table.obj", tableTex);
@@ -198,12 +212,29 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	kingWhite = new Model("objects/king.obj", whiteTex);
 	kingBlack = new Model("objects/king.obj", blackTex);
+
+	floorPlane = new Model("objects/plane.obj", floorTex);
+	wallPlane = new Model("objects/plane.obj", wallTex);
 }
 
 
 //Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram(GLFWwindow* window) {
     freeShaders();
+}
+
+void drawMult(glm::mat4& matrix, Model* model, float scale = 0.25f, int count = 3) {
+	const float planeSize = 10.0f;
+	count = (count - (count % 2)) / 2;
+	matrix = glm::scale(matrix, glm::vec3(scale, scale, scale));
+	glm::mat4 matTrans;
+	for (float x = -planeSize * count; x <= planeSize * count; x += planeSize) {
+		for (float z = -planeSize * count; z <= planeSize * count; z += planeSize) {
+			 matTrans = glm::translate(matrix, glm::vec3(x, 0.0f, z));
+			 glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(matTrans));
+			 model->draw();
+		}
+	}
 }
 
 //Procedura rysująca zawartość sceny
@@ -220,6 +251,19 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 
 	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
 	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
+
+	glm::mat4 floorMat = glm::mat4(1.0f);
+	drawMult(floorMat, floorPlane, 0.25f, 5);
+
+	glm::mat4 wallMat = glm::mat4(1.0f);
+	glm::mat4 wallMatP;
+	for (int x = 0; x < 4; x++) {
+		wallMatP = glm::rotate(wallMat, (PI / 2) * x, glm::vec3(0.0f, 1.0f, 0.0f));
+		wallMatP = glm::translate(wallMatP, glm::vec3(6.25f, 0.0f, 0.0f));
+		wallMatP = glm::rotate(wallMatP, (PI / 2), glm::vec3(0.0f, 0.0f, 1.0f));
+		wallMatP = glm::rotate(wallMatP, PI / 2, glm::vec3(0.0f, 1.0f, 0.0f));
+		drawMult(wallMatP, wallPlane, 0.25f, 5);
+	}
 	
 	glm::mat4 tableMat = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
 	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //skalowanie stołu
@@ -425,7 +469,10 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	window = glfwCreateWindow(WINDOW_SIZE, WINDOW_SIZE, "Chess", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+	window = glfwCreateWindow(WINDOW_SIZE, WINDOW_SIZE, "Chess", NULL, NULL); 
+	glfwSetWindowSizeLimits(window, WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE);
+	glfwSetWindowAspectRatio(window, WINDOW_SIZE, WINDOW_SIZE);
+	glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
