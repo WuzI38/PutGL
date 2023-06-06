@@ -185,7 +185,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST); //Włącz test głębokości na pikselach
 	glfwSetKeyCallback(window, key_callback); // włączenie obsługi przycisków
 	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
@@ -290,18 +290,21 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	
 	if (moveEnded && !moveStarted) {
 		if (std::getline(infile, line)) {
-			int row1 = (int)line.at(0) - (int)'a'; // wiersz pola z którego następuje ruch
-			int col1 = line.at(1) - (int)'1'; // kolumna pola z którego następuje ruch
-			destRow = (int)line.at(3) - (int)'a'; // przypisanie do zmiennej globalnej wiersza pola do którego następuje ruch
-			destCol = line.at(4) - (int)'1'; // przypisanie do zmiennej globalnej kolumny pola do którego następuje ruch
+			int col1 = (int)line.at(0) - (int)'a'; // wiersz pola z którego następuje ruch
+			int row1 = line.at(1) - (int)'1'; // kolumna pola z którego następuje ruch
+			destCol = (int)line.at(3) - (int)'a'; // przypisanie do zmiennej globalnej wiersza pola do którego następuje ruch
+			destRow = line.at(4) - (int)'1'; // przypisanie do zmiennej globalnej kolumny pola do którego następuje ruch
 			std::string destPos = line.substr(3, 2); // zmienna tekstowa reprezentująca pole do którego następuje ruch
 			std::string srcPos = line.substr(0, 2); // zmienna tekstowa reprezentująca pole z którego następuje ruch
 			move->setupMove(&pieceMat, srcPos, destPos); // wywołanie funkcji setupMove, wyliczenie dystansu który musi przebyć figura, takie rzeczy
 			moveStarted = true;
 			moveEnded = false;
-			char piece = board[col1][row1]; 
-			currPiece = piece; // zmienna przechowująca jaka figura się rusza
-			if (tolower(currPiece) == 'p' && destRow != row1) {
+			char piece = board[row1][col1];
+			if (piece == 'K' || piece == 'k') {
+				isCastling = (abs(col1 - destCol) > 1) ? true : false;
+			}
+			currPiece = (line.at(6) == '0') ? board[row1][col1] : (islower(board[row1][col1])) ? tolower(line.at(6)) : line.at(6);; // zmienna przechowująca jaka figura się rusza (jak promocja to jaką się stanie po ruchu)
+			if (tolower(currPiece) == 'p' && destCol != col1 && board[destRow][destCol] == 'x') {
 				isEnPassant = true;
 			}
 			else {
@@ -337,6 +340,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			case 'r':
 				currModel = rookWhite;
 				currColor = true;
+				break;
 			case 'R':
 				currModel = rookBlack;
 				currColor = false;
@@ -360,7 +364,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			default:
 				break;
 			}
-			board[col1][row1] = 'x';// pole z którego rusza się figura staje się puste
+			board[row1][col1] = 'x';// pole z którego rusza się figura staje się puste
 		}
 	}
 	// jeżeli ruch się zaczął a jeszcze nie skończył
@@ -370,10 +374,17 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	}
 	if (moveEnded && moveStarted) {
 		moveStarted = false;
-		board[destCol][destRow] = currPiece; // ustawienie figury na planszy
+		board[destRow][destCol] = currPiece; // ustawienie figury na planszy
 		if (isEnPassant) {
 			int tempRow = (currColor) ? destRow - 1 : destRow + 1;
-			board[destCol][tempRow] = 'x';
+			board[tempRow][destCol] = 'x';
+		}
+		if (isCastling) {
+			int tempCol = (destCol == 2) ? 3 : 5;
+			int tempSrcCol = (destCol == 2) ? 0 : 7;
+			board[destRow][tempCol] = (currColor) ? 'r' : 'R';
+			board[destRow][tempSrcCol] = 'x';
+			isCastling = false;
 		}
 	}
 
@@ -470,9 +481,6 @@ int main(void)
 	}
 
 	window = glfwCreateWindow(WINDOW_SIZE, WINDOW_SIZE, "Chess", NULL, NULL); 
-	glfwSetWindowSizeLimits(window, WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE);
-	glfwSetWindowAspectRatio(window, WINDOW_SIZE, WINDOW_SIZE);
-	glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
