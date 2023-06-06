@@ -9,8 +9,8 @@ uniform mat4 M;
 //uniform vec4 lightDir=vec4(0, 4, 4, 0);
 //uniform vec4 light2Dir=vec4(1, 4, 1.5, 0);
 
-uniform vec4 lightDir=vec4(0, 4, 4, 0);
-uniform vec4 light2Dir=vec4(1, 4, 1.5, 0);
+uniform vec4 lightDir=vec4(3, 4, 0, 0);
+uniform vec4 light2Dir=vec4(0, 4, 0, 0);
 
 //Atrybuty
 layout (location=0) in vec4 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
