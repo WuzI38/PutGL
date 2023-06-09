@@ -26,6 +26,7 @@ public:
 	virtual bool movePiece(float time, bool is_white); // Fluent movement
 	virtual void setupMove(glm::mat4* matrix, std::string src_pos, std::string dest_pos); // Setup for fluent movement
 	virtual void placePiece(glm::mat4* matrix, std::string field, bool is_white=false); // Teleport piece to a given position
+	virtual bool moveVertically(float time, bool is_white, bool up = true);
 
 
 private:
@@ -36,6 +37,7 @@ private:
 	glm::mat4 currMat; // aktualna macierz przesuwanej figury
 	float dist[2]; // dystans do pokonania miêdzy srcPos a destPos
 	float distLeft[2]; // dystans jaki zosta³ do pokonania
+	float verticalDist[2]; // dystans jaki zosta³ do pokonania w pionie [0] - w górê, [1] - w dó³
 	virtual void calculatePositions();
 };
 

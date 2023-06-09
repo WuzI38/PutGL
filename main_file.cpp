@@ -105,6 +105,8 @@ int destCol;
 // flaga reprezentująca to czy ruch jest roszadą
 bool isCastling = false;
 bool isEnPassant = false;
+bool isUp = false;
+bool isDown = false;
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -299,6 +301,8 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			move->setupMove(&pieceMat, srcPos, destPos); // wywołanie funkcji setupMove, wyliczenie dystansu który musi przebyć figura, takie rzeczy
 			moveStarted = true;
 			moveEnded = false;
+			isUp = false;
+			isDown = false;
 			char piece = board[row1][col1];
 			if (piece == 'K' || piece == 'k') {
 				isCastling = (abs(col1 - destCol) > 1) ? true : false;
@@ -368,11 +372,18 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 		}
 	}
 	// jeżeli ruch się zaczął a jeszcze nie skończył
-	if (moveStarted && !moveEnded) {
-		moveEnded = move->movePiece(moveTime, currColor); // ruch figury, wyliczenie macierzy
+	if (moveStarted && !isDown) {
+		if (!isUp) {
+			isUp = move->moveVertically(moveTime, currColor, true);
+		} else if(isUp && !moveEnded) {
+			moveEnded = move->movePiece(moveTime, currColor); // ruch figury, wyliczenie macierzy
+		}
+		else if (isUp && moveEnded) {
+			isDown = move->moveVertically(moveTime, currColor, false);
+		}
 		currModel->draw(); // rysowanie modelu
 	}
-	if (moveEnded && moveStarted) {
+	if (isDown && moveStarted) {
 		moveStarted = false;
 		board[destRow][destCol] = currPiece; // ustawienie figury na planszy
 		if (isEnPassant) {
