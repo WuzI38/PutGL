@@ -38,6 +38,7 @@ private:
 	float dist[2]; // dystans do pokonania miêdzy srcPos a destPos
 	float distLeft[2]; // dystans jaki zosta³ do pokonania
 	float verticalDist[2]; // dystans jaki zosta³ do pokonania w pionie [0] - w górê, [1] - w dó³
+	float vD;
 	virtual void calculatePositions();
 };
 

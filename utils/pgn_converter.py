@@ -14,7 +14,7 @@ if __name__ == '__main__':
             promotion = chess.Piece(promotion, chess.WHITE).symbol().upper()
         else:
             promotion = '0'
-        f.write(f"{from_sqr}, {to_sqr}, {promotion}\n")
+        f.write(f"{from_sqr},{to_sqr},{promotion}\n")
     f.close()
     
         

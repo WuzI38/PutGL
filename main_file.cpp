@@ -86,7 +86,7 @@ Model* kingBlack;
 Model* floorPlane;
 Model* wallPlane;
 
-std::ifstream infile("games/gamePromotion.csv");
+std::ifstream infile("games/game.csv");
 
 // Zmienne globalne do ruchu figur
 // model figury która się rusza
@@ -233,7 +233,7 @@ void drawMult(glm::mat4& matrix, Model* model, float scale = 0.25f, int count = 
 	for (float x = -planeSize * count; x <= planeSize * count; x += planeSize) {
 		for (float z = -planeSize * count; z <= planeSize * count; z += planeSize) {
 			 matTrans = glm::translate(matrix, glm::vec3(x, 0.0f, z));
-			 glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(matTrans));
+			 glUniformMatrix4fv(spTextured->u("M"), 1, false, glm::value_ptr(matTrans));
 			 model->draw();
 		}
 	}
@@ -244,15 +244,15 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Wyczyść bufor koloru i bufor głębokości
 
-	spLambertTextured->use(); //Aktywuj program cieniujący
+	spTextured->use(); //Aktywuj program cieniujący
 
 	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
 	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
 	V = glm::rotate(V, angle_x, glm::vec3(0.0f, 0.0f, 1.0f)); // Obrót kamery w pione
 	V = glm::rotate(V, angle_y, glm::vec3(0.0f, 1.0f, 0.0f)); // Obrót kamery w poziomie
 
-	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
-	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
+	glUniformMatrix4fv(spTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
+	glUniformMatrix4fv(spTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
 
 	glm::mat4 floorMat = glm::mat4(1.0f);
 	drawMult(floorMat, floorPlane, 0.25f, 5);
@@ -269,7 +269,9 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	
 	glm::mat4 tableMat = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
 	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //skalowanie stołu
-
+	spLambertTextured->use();
+	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
+	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
 	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tableMat));
 
 	table->draw();
@@ -398,24 +400,6 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			isCastling = false;
 		}
 	}
-
-
-	// move processing
-	//if (waitTime > 2) {
-	//	waitTime = 0;
-	//	std::string line;
-	//	if (std::getline(infile, line)) {
-	//		int row1 = (int)line.at(0) - (int)'a';
-	//		int col1 = line.at(1) - (int)'1';
-	//		int row2 = (int)line.at(3) - (int)'a';
-	//		int col2 = line.at(4) - (int)'1';
-	//		int tab[] = { row1, col1, row2, col2 };
-	//		// teleports piece from one square to another, also handles promotion
-	//		board[tab[3]][tab[2]] = (line.at(6) == '0') ? board[tab[1]][tab[0]] : (islower(board[tab[1]][tab[0]])) ? tolower(line.at(6)) : line.at(6);
-	//		board[tab[1]][tab[0]] = 'x';
-	//	}
-	//}
-
 	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {

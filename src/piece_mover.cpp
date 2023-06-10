@@ -2,6 +2,7 @@
 
 PieceMover::PieceMover(int localScale) {
 	this->localScale = localScale;
+    this->vD = 0.15;
 	this->calculatePositions();
 }
 
@@ -31,8 +32,8 @@ void PieceMover::setupMove(glm::mat4* matrix, std::string src_pos, std::string d
     this->dist[1] = this->positions[dest_pos].second - this->positions[src_pos].second; // wylicza dystans miêdzy drug¹ wspó³rzêdn¹ pola z którego i pola do którego wykonywany jest ruch
     this->distLeft[0] = this->positions[dest_pos].first - this->positions[src_pos].first; // wylicza dystans miêdzy pierwsz¹ wspó³rzêdn¹ pola z którego i pola do którego wykonywany jest ruch
     this->distLeft[1] = this->positions[dest_pos].second - this->positions[src_pos].second; // wylicza dystans miêdzy drug¹ wspó³rzêdn¹ pola z którego i pola do którego wykonywany jest ruch
-    this->verticalDist[0] = 0.1;
-    this->verticalDist[1] = -0.1;
+    this->verticalDist[0] = this->vD;
+    this->verticalDist[1] = -this->vD;
     this->srcPos = src_pos; // reprezentacja tekstowa pola z którego wykonuje siê ruch
     this->destPos = dest_pos; // reprezentacja tekstowa pola do którego wykonuje siê ruch
     this->currMat = glm::translate(*matrix, glm::vec3(this->positions[srcPos].first, 0.0f, this->positions[src_pos].second)); // pocz¹tkowa macierz przesuwanej figury - macierz wskazuj¹ca na pole z którego wykonywany jest ruch
@@ -40,7 +41,7 @@ void PieceMover::setupMove(glm::mat4* matrix, std::string src_pos, std::string d
 
 bool PieceMover::moveVertically(float time,bool is_white,  bool up) {
     if (up) {
-        if (abs(0.1 * 2 * time) > abs(this->verticalDist[0])) {
+        if (abs(this->vD * 2 * time) > abs(this->verticalDist[0])) {
             this->currMat = glm::translate(this->currMat, glm::vec3(0, this->verticalDist[0], 0)); // translacja macierzy o pozosta³y dystans
             glm::mat4 pieceMat = glm::scale(this->currMat, glm::vec3(0.8f, 0.8f, 0.8f)); // przeskalowanie modelu o 4/5 (lepiej siê mieœci na polach)
             pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat; // je¿eli figura jest bia³a obraca siê o 180 stopni
@@ -48,8 +49,8 @@ bool PieceMover::moveVertically(float time,bool is_white,  bool up) {
             return true;
         }
         else {
-            this->verticalDist[0] -= 0.1 * 2 * time;
-            this->currMat = glm::translate(this->currMat, glm::vec3(0, 0.1 * 2 * time, 0)); // translacja macierzy o pozosta³y dystans
+            this->verticalDist[0] -= this->vD * 2 * time;
+            this->currMat = glm::translate(this->currMat, glm::vec3(0, this->vD * 2 * time, 0)); // translacja macierzy o pozosta³y dystans
             glm::mat4 pieceMat = glm::scale(this->currMat, glm::vec3(0.8f, 0.8f, 0.8f)); // przeskalowanie modelu o 4/5 (lepiej siê mieœci na polach)
             pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat; // je¿eli figura jest bia³a obraca siê o 180 stopni
             glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(pieceMat)); // wprowadza macierz modelu do vertex shadera
@@ -57,7 +58,7 @@ bool PieceMover::moveVertically(float time,bool is_white,  bool up) {
         }
     }
     else {
-        if (abs(0.1 * 2 * time) > abs(this->verticalDist[1])) {
+        if (abs(this->vD * 2 * time) > abs(this->verticalDist[1])) {
             this->currMat = glm::translate(this->currMat, glm::vec3(0, this->verticalDist[1], 0)); // translacja macierzy o pozosta³y dystans
             glm::mat4 pieceMat = glm::scale(this->currMat, glm::vec3(0.8f, 0.8f, 0.8f)); // przeskalowanie modelu o 4/5 (lepiej siê mieœci na polach)
             pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat; // je¿eli figura jest bia³a obraca siê o 180 stopni
@@ -65,8 +66,8 @@ bool PieceMover::moveVertically(float time,bool is_white,  bool up) {
             return true;
         }
         else {
-            this->verticalDist[1] -= -0.1 * 2 * time;
-            this->currMat = glm::translate(this->currMat, glm::vec3(0, -0.1 * 2 * time, 0)); // translacja macierzy o pozosta³y dystans
+            this->verticalDist[1] -= -this->vD * 2 * time;
+            this->currMat = glm::translate(this->currMat, glm::vec3(0, -this->vD * 2 * time, 0)); // translacja macierzy o pozosta³y dystans
             glm::mat4 pieceMat = glm::scale(this->currMat, glm::vec3(0.8f, 0.8f, 0.8f)); // przeskalowanie modelu o 4/5 (lepiej siê mieœci na polach)
             pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat; // je¿eli figura jest bia³a obraca siê o 180 stopni
             glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(pieceMat)); // wprowadza macierz modelu do vertex shadera
