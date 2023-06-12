@@ -86,7 +86,7 @@ Model* kingBlack;
 Model* floorPlane;
 Model* wallPlane;
 
-std::ifstream infile("games/game.csv");
+std::ifstream infile("games/gameExtensiveCastling.csv");
 
 // Zmienne globalne do ruchu figur
 // model figury która się rusza
@@ -107,6 +107,11 @@ bool isCastling = false;
 bool isEnPassant = false;
 bool isUp = false;
 bool isDown = false;
+
+glm::mat4 castlingMat;
+int srcColCastling;
+int destColCastling;
+float castlingDistance;
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -244,7 +249,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Wyczyść bufor koloru i bufor głębokości
 
-	spTextured->use(); //Aktywuj program cieniujący
+	spTextured->use(); //Aktywuj program cieniujący, nie używający światła
 
 	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
 	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
@@ -254,11 +259,11 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	glUniformMatrix4fv(spTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
 	glUniformMatrix4fv(spTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
 
-	glm::mat4 floorMat = glm::mat4(1.0f);
-	drawMult(floorMat, floorPlane, 0.25f, 5);
+	glm::mat4 floorMat = glm::mat4(1.0f); // macierz jednostkowa
+	drawMult(floorMat, floorPlane, 0.25f, 5); // rysowanie podłogi
 
-	glm::mat4 wallMat = glm::mat4(1.0f);
-	glm::mat4 wallMatP;
+	glm::mat4 wallMat = glm::mat4(1.0f); // macierz jednostkowa
+	glm::mat4 wallMatP; // zmienna na macierz dla danej ściany
 	for (int x = 0; x < 4; x++) {
 		wallMatP = glm::rotate(wallMat, (PI / 2) * x, glm::vec3(0.0f, 1.0f, 0.0f));
 		wallMatP = glm::translate(wallMatP, glm::vec3(6.25f, 0.0f, 0.0f));
@@ -269,25 +274,25 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	
 	glm::mat4 tableMat = glm::mat4(1.0f); //Zainicjuj macierz modelu macierzą jednostkową
 	tableMat = glm::scale(tableMat, glm::vec3(1.1f, 1.1f, 1.1f)); //skalowanie stołu
-	spLambertTextured->use();
+	spLambertTextured->use(); // użycie programu cieniującego ze światłem
 	glUniformMatrix4fv(spLambertTextured->u("P"), 1, false, glm::value_ptr(P)); //Załaduj do programu cieniującego macierz rzutowania
 	glUniformMatrix4fv(spLambertTextured->u("V"), 1, false, glm::value_ptr(V)); //Załaduj do programu cieniującego macierz widoku
-	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tableMat));
+	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tableMat)); // przekazanie do programu cieniującego macierzy dla stołu
 
 	table->draw();
 
-	glm::mat4 chessboardMat = glm::mat4(1.0f);
-	chessboardMat = glm::translate(chessboardMat, glm::vec3(0.0f, 1.15f, 0.0f));
-	chessboardMat = glm::rotate(chessboardMat, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
-	chessboardMat = glm::scale(chessboardMat, glm::vec3(0.02f, 0.02f, 0.02f));
+	glm::mat4 chessboardMat = glm::mat4(1.0f); // macierz jednostkowa
+	chessboardMat = glm::translate(chessboardMat, glm::vec3(0.0f, 1.15f, 0.0f)); // przesunięcie planszy na stół
+	chessboardMat = glm::rotate(chessboardMat, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f)); // obrócenie planszy
+	chessboardMat = glm::scale(chessboardMat, glm::vec3(0.02f, 0.02f, 0.02f)); // przeskalowanie planszy
 
-	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(chessboardMat));
+	glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(chessboardMat)); // przekazanie macierzy do programu cieniującego
 
-	chessboard->draw();
+	chessboard->draw(); // narysowanie planszy
 
-	glm::mat4 pieceMat = glm::mat4(1.0f);
-	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.147f, 0.0f));
-	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f));
+	glm::mat4 pieceMat = glm::mat4(1.0f); // macierz jednostkowa
+	pieceMat = glm::translate(pieceMat, glm::vec3(0.0f, 1.147f, 0.0f)); // ustawienie figury na planszy
+	pieceMat = glm::scale(pieceMat, glm::vec3(1.5f, 1.5f, 1.5f)); // przeskalowanie figury
 	
 
 	// proper move processing
@@ -301,17 +306,18 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 			std::string destPos = line.substr(3, 2); // zmienna tekstowa reprezentująca pole do którego następuje ruch
 			std::string srcPos = line.substr(0, 2); // zmienna tekstowa reprezentująca pole z którego następuje ruch
 			move->setupMove(&pieceMat, srcPos, destPos); // wywołanie funkcji setupMove, wyliczenie dystansu który musi przebyć figura, takie rzeczy
-			moveStarted = true;
-			moveEnded = false;
-			isUp = false;
-			isDown = false;
-			char piece = board[row1][col1];
+			moveStarted = true; // ruch się zaczął
+			moveEnded = false; // ruch się jeszcze nie skończył
+			isUp = false; // model jeszcze się nie wzniósł
+			isDown = false; // model jeszcze nie opadł
+			char piece = board[row1][col1]; // zmienna używana w switchu, reprezentuje jaka figura zaczyna się poruszać
 			if (piece == 'K' || piece == 'k') {
-				isCastling = (abs(col1 - destCol) > 1) ? true : false;
+				isCastling = (abs(col1 - destCol) > 1) ? true : false; // sprawdzenie czy ruch jest roszadą, jeżeli król się rusza o więcej niż jedno pole to jest to roszada
 			}
+			
 			currPiece = (line.at(6) == '0') ? board[row1][col1] : (islower(board[row1][col1])) ? tolower(line.at(6)) : line.at(6);; // zmienna przechowująca jaka figura się rusza (jak promocja to jaką się stanie po ruchu)
 			if (tolower(currPiece) == 'p' && destCol != col1 && board[destRow][destCol] == 'x') {
-				isEnPassant = true;
+				isEnPassant = true; // jeżeli pionek rusza się do sąsiedniej kolumny i pole na które się rusza jest puste oznacza to że występuje bicie w przelocie
 			}
 			else {
 				isEnPassant = false;
@@ -371,33 +377,58 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 				break;
 			}
 			board[row1][col1] = 'x';// pole z którego rusza się figura staje się puste
+
+			if (isCastling) {
+				srcColCastling = (destCol == 2) ? 0 : 7; // obliczenie kolumny z której rusza się wieża podczas roszady
+				std::string tempCol = (srcColCastling == 0) ? "a" : "h"; // tymczasowa zmienna tekstowa reprezentująca kolumnę
+				int tempRow = (currColor) ? 0 : 7; // cała funkcja jest tutaj gdyż dopiero w tym momencie znany jest kolor figury
+				destColCastling = (destCol == 2) ? 3 : 5; // obliczenie kolumny do której będzie się poruszać wieża
+				castlingDistance = move->calculateCastlingDistance(srcColCastling, destColCastling); // obliczenie odległości o którą należy przenieść wieżę
+ 				std::string field = std::string(1, (char)('a' + srcColCastling)) + std::to_string(tempRow+1); // tekstowa reprezentacja pola z którego rusza się wieża
+				castlingMat = glm::translate(pieceMat, glm::vec3(move->getCol(field), 0.0f, move->getRow(field))); // wyznaczenie macieży dla początkowego pola wieży
+			}
 		}
 	}
-	// jeżeli ruch się zaczął a jeszcze nie skończył
+	// jeżeli ruch się zaczął a figura jeszcze nie opadła spowrotem na planszę
 	if (moveStarted && !isDown) {
-		if (!isUp) {
-			isUp = move->moveVertically(moveTime, currColor, true);
-		} else if(isUp && !moveEnded) {
+		if (!isUp) { // jeżeli figura jeszcze się nie wzniosła
+			isUp = move->moveVertically(moveTime, currColor, true); // figura rusza się w pionie
+		} else if(isUp && !moveEnded) { // jeżeli figura się wzniosła ale nie skończyła ruchu
 			moveEnded = move->movePiece(moveTime, currColor); // ruch figury, wyliczenie macierzy
+			
 		}
-		else if (isUp && moveEnded) {
-			isDown = move->moveVertically(moveTime, currColor, false);
+		else if (isUp && moveEnded) { // jeżeli figura skończyła ruch 
+			isDown = move->moveVertically(moveTime, currColor, false); // opuszczenie figury na planszę
 		}
 		currModel->draw(); // rysowanie modelu
-	}
-	if (isDown && moveStarted) {
-		moveStarted = false;
-		board[destRow][destCol] = currPiece; // ustawienie figury na planszy
-		if (isEnPassant) {
-			int tempRow = (currColor) ? destRow - 1 : destRow + 1;
-			board[tempRow][destCol] = 'x';
+		
+		if (isUp && !moveEnded && isCastling) {
+			board[destRow][srcColCastling] = 'x'; // usunięcie wieży z tablicy
+			castlingMat = glm::translate(castlingMat, glm::vec3(moveTime * castlingDistance, 0.0f, 0.0f)); // z jakiegoś powodu liczę odległość między wierszami nie kolumnami, stąd minus
+			glm::mat4 tempMat = glm::scale(castlingMat, glm::vec3(0.8f, 0.8f, 0.8f)); // utworzenie tymczasowej macierzy
+			glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(tempMat)); 
+			if (currColor) {
+				rookWhite->draw();
+			}
+			else {
+				rookBlack->draw();
+			}
 		}
-		if (isCastling) {
+		if (isUp && moveEnded && isCastling) { // ustawienie wieży na końcowej pozycji
+			// jeżeli ruch był roszadą
 			int tempCol = (destCol == 2) ? 3 : 5;
 			int tempSrcCol = (destCol == 2) ? 0 : 7;
 			board[destRow][tempCol] = (currColor) ? 'r' : 'R';
 			board[destRow][tempSrcCol] = 'x';
 			isCastling = false;
+		}
+	}
+	if (isDown && moveStarted) { // jeżeli figura jest na planszy a ruch się zaczął
+		moveStarted = false; // koniec ruchu
+		board[destRow][destCol] = currPiece; // ustawienie figury na planszy
+		if (isEnPassant) { // jeżeli bicie w przelocie
+			int tempRow = (currColor) ? destRow - 1 : destRow + 1; // jeżeli figura jest biała to wiersz bitego pionka ma niższy numer, jak czarna to wyższy
+			board[tempRow][destCol] = 'x'; // usunięcie bitego pionka znajdującego się pod obecną pozycją ruszanej figury
 		}
 	}
 	// przechodzi przez całą tablicę i rysuje figury na odpowiednich polach

@@ -27,6 +27,9 @@ public:
 	virtual void setupMove(glm::mat4* matrix, std::string src_pos, std::string dest_pos); // Setup for fluent movement
 	virtual void placePiece(glm::mat4* matrix, std::string field, bool is_white=false); // Teleport piece to a given position
 	virtual bool moveVertically(float time, bool is_white, bool up = true);
+	virtual float calculateCastlingDistance(int srcCol, int destCol);
+	virtual float getRow(std::string field);
+	virtual float getCol(std::string field);
 
 
 private:

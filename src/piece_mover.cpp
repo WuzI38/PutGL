@@ -77,12 +77,27 @@ bool PieceMover::moveVertically(float time,bool is_white,  bool up) {
 }
 
 void PieceMover::placePiece(glm::mat4* matrix, std::string field, bool is_white) {
-    glm::mat4 pieceMat = glm::translate(*matrix, glm::vec3(this->positions[field].first, 0.0f, this->positions[field].second));
-    pieceMat = glm::scale(pieceMat, glm::vec3(0.8f, 0.8f, 0.8f));
-    pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat;
-    //std::cout << this->positions[field].first << " " << this->positions[field].second << std::endl;
+    glm::mat4 pieceMat = glm::translate(*matrix, glm::vec3(this->positions[field].first, 0.0f, this->positions[field].second)); // wyliczenie pozycji dla danego pola
+    pieceMat = glm::scale(pieceMat, glm::vec3(0.8f, 0.8f, 0.8f)); // przeskalowanie aby siê figury lepiej mieœci³y
+    pieceMat = (is_white) ? glm::rotate(pieceMat, PI, glm::vec3(0.0f, 1.0f, 0.0f)) : pieceMat; // obrócenie bia³ych figur
     glUniformMatrix4fv(spLambertTextured->u("M"), 1, false, glm::value_ptr(pieceMat));
 }
+
+float PieceMover::calculateCastlingDistance(int srcCol, int destCol) {
+    std::string srcField = std::string(1, (char)'a' + srcCol); // tekstowa reprezentacja kolumny na której znajduje siê wie¿a
+    std::string destField = std::string(1, (char)'a' + destCol); // tekstowa reprezentacja kolumny do której zmierza wie¿a
+    return this->positions[destField+"1"].first - this->positions[srcField+"1"].first; // zwraca dystans miêdzy pierwsz¹ wspó³rzêdn¹ pola o pocz¹tkowej kolumnie a pola o koñcowej kolumnie
+}
+
+float PieceMover::getCol(std::string field) {
+    return this->positions[field].first; // zwraca pierwsza (odpowiadaj¹com kolumnom) wspó³rzêdn¹ dla danego pola
+}
+
+float PieceMover::getRow(std::string field) {
+    return this->positions[field].second; // zwraca drug¹ (odpowiadaj¹com rzêdom) wspó³rzêdn¹ dla danego pola 
+}
+
+
 
 void PieceMover::calculatePositions() {
     int letterIndex = 1;
