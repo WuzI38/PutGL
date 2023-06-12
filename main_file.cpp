@@ -156,10 +156,10 @@ void key_callback(
 			speed_x = - PI / 5; // jeżeli strzałka w dół kamera przesuwa się w dół
 		}
 		if (key == GLFW_KEY_RIGHT) {
-			speed_y = PI / 4;
+			speed_y = -PI / 4;
 		}
 		if (key == GLFW_KEY_LEFT) {
-			speed_y = -PI / 4;
+			speed_y = PI / 4;
 		}
 	}
 	if (action == GLFW_RELEASE) {
