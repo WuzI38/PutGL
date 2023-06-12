@@ -86,7 +86,7 @@ Model* kingBlack;
 Model* floorPlane;
 Model* wallPlane;
 
-std::ifstream infile("games/gameExtensiveCastling.csv");
+std::ifstream infile("games/game.csv");
 
 // Zmienne globalne do ruchu figur
 // model figury która się rusza
@@ -252,7 +252,7 @@ void drawScene(GLFWwindow* window, float angle_y, float angle_x) {
 	spTextured->use(); //Aktywuj program cieniujący, nie używający światła
 
 	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 100.0f); //Wylicz macierz rzutowania
-	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
+	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz widoku
 	V = glm::rotate(V, angle_x, glm::vec3(0.0f, 0.0f, 1.0f)); // Obrót kamery w pione
 	V = glm::rotate(V, angle_y, glm::vec3(0.0f, 1.0f, 0.0f)); // Obrót kamery w poziomie
 
