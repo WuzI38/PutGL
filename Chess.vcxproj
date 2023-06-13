@@ -19,11 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers\constants.h" />
+    <ClInclude Include="globals.h" />
+    <ClInclude Include="headers\const.h" />
     <ClInclude Include="headers\lodepng.h" />
     <ClInclude Include="headers\model.h" />
     <ClInclude Include="headers\piece_mover.h" />
     <ClInclude Include="headers\shaderprogram.h" />
+    <ClInclude Include="scene.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main_file.cpp" />
@@ -33,14 +36,8 @@
     <ClCompile Include="src\shaderprogram.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\f_colored.glsl" />
-    <None Include="shaders\f_constant.glsl" />
-    <None Include="shaders\f_lambert.glsl" />
     <None Include="shaders\f_lamberttextured.glsl" />
     <None Include="shaders\f_textured.glsl" />
-    <None Include="shaders\v_colored.glsl" />
-    <None Include="shaders\v_constant.glsl" />
-    <None Include="shaders\v_lambert.glsl" />
     <None Include="shaders\v_lamberttextured.glsl" />
     <None Include="shaders\v_textured.glsl" />
   </ItemGroup>
@@ -49,7 +46,7 @@
     <ProjectGuid>{7288C82C-3F3E-4501-8878-A310FCA284FE}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Chess</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>Chess</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,7 +67,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>

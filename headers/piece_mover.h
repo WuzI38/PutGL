@@ -1,15 +1,10 @@
 #ifndef PIECE_MOVER_H
 #define PIECE_MOVER_H
 
-#pragma once // SOME OF THESE ARE USELESS, I JUST HAVE NO IDEA WHICH EXACTLY
+#pragma once // // I'm unsure of which ones are useless, but some of them are.
 #include <iostream>
 #include <vector>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include "headers/lodepng.h"
 #include "headers/shaderprogram.h"
-#include "headers/constants.h"
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

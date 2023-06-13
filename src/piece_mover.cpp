@@ -1,4 +1,7 @@
+#pragma once
 #include "headers/piece_mover.h"
+#include "headers/const.h"
+
 
 PieceMover::PieceMover(int localScale) {
 	this->localScale = localScale;

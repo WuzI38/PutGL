@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers\constants.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="headers\lodepng.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -28,6 +25,18 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="headers\piece_mover.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="globals.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\const.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,28 +58,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\f_colored.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
-    <None Include="shaders\f_constant.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
-    <None Include="shaders\f_lambert.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
     <None Include="shaders\f_lamberttextured.glsl">
       <Filter>Pliki zasobów</Filter>
     </None>
     <None Include="shaders\f_textured.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
-    <None Include="shaders\v_colored.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
-    <None Include="shaders\v_constant.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
-    <None Include="shaders\v_lambert.glsl">
       <Filter>Pliki zasobów</Filter>
     </None>
     <None Include="shaders\v_lamberttextured.glsl">
