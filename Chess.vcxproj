@@ -19,14 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="globals.h" />
     <ClInclude Include="headers\const.h" />
+    <ClInclude Include="headers\globals.h" />
     <ClInclude Include="headers\lodepng.h" />
     <ClInclude Include="headers\model.h" />
     <ClInclude Include="headers\piece_mover.h" />
+    <ClInclude Include="headers\scene.h" />
     <ClInclude Include="headers\shaderprogram.h" />
-    <ClInclude Include="scene.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="headers\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main_file.cpp" />
