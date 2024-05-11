@@ -17,6 +17,7 @@ The application reads chess games stored in the PGN (Portable Game Notation) for
 3. **Replaying the Game**: The application goes through the recorded moves one by one, moving the pieces on the 3D board accordingly. This allows you to watch the entire game play out move by move.
 
 <p align="center">
-  ![350975042_1699409090497764_8589021414242312994_n](https://github.com/WuzI38/PutGL/assets/102658588/e16be0fb-c07b-4c49-9637-6a93ee770534)
-  ![354034124_213085714952118_6051601656537600495_n](https://github.com/WuzI38/PutGL/assets/102658588/85615f2a-0bd1-4150-9f29-394ac0b7c07d)
+  <img width="400" alt="Screens" src="https://github.com/WuzI38/PutGL/assets/102658588/0033b544-7c63-4b3f-afd0-ef4fe1f61ebf">
 </p>
+
+
